@@ -1,0 +1,128 @@
+export const events = [
+  {
+    id: 'annual-dance-night-2026',
+    name: 'Annual Dance Night 2026',
+    date: '15 September 2026',
+    time: '6:00 PM – 10:00 PM',
+    location: 'Brilliant Convention Centre, Indore',
+    description: 'The biggest night of the year at Geet Studio. A spectacular showcase featuring performances from all our students, guest artists, and live music.',
+    longDescription: 'Annual Dance Night is the crown jewel of Geet Studio\'s calendar. This grand event brings together over 200 performers across all dance styles — Bollywood, Hip-Hop, Contemporary, Salsa, Jazz, and Freestyle. The evening features student showcases, instructor performances, guest artist acts, and a grand finale choreographed by our founder. With professional lighting, sound, and stage design, this is a night that celebrates the power of dance.',
+    type: 'upcoming',
+    category: 'showcase',
+    image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80',
+    highlights: ['200+ performers', 'Live music', 'Guest artists', 'Professional production', 'After-party'],
+    photoCount: 0,
+    videoCount: 0,
+    price: 500,
+    totalSeats: 500,
+    availableSeats: 280,
+  },
+  {
+    id: 'independence-day-special',
+    name: 'Independence Day Special',
+    date: '15 August 2026',
+    time: '5:00 PM – 8:00 PM',
+    location: 'Geet Studio, Indore',
+    description: 'A special patriotic dance event celebrating Indian culture through movement. Open performances, live music, and community gathering.',
+    longDescription: 'Celebrate India\'s Independence Day with a special dance event at Geet Studio. The evening features patriotic dance performances, a flash mob, open stage for community performances, and a special tribute to Indian dance forms. Join us for an evening of pride, culture, and community spirit.',
+    type: 'upcoming',
+    category: 'special',
+    image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80',
+    highlights: ['Patriotic performances', 'Flash mob', 'Open stage', 'Community gathering'],
+    photoCount: 0,
+    videoCount: 0,
+    price: 0,
+    totalSeats: 100,
+    availableSeats: 45,
+  },
+  {
+    id: 'summer-dance-intensive-2026',
+    name: 'Summer Dance Intensive 2026',
+    date: '1–15 June 2026',
+    time: '9:00 AM – 5:00 PM',
+    location: 'Geet Studio, Indore',
+    description: 'Two weeks of intensive dance training across multiple styles. The definitive summer dance experience in Indore.',
+    longDescription: 'The Summer Dance Intensive was a transformative 2-week program that brought together 80 dancers from across Madhya Pradesh. Participants trained in Bollywood, Hip-Hop, Contemporary, and Freestyle with our full instructor team. The intensive concluded with a showcase performance for friends and family. An unforgettable experience that pushed boundaries and forged lasting connections.',
+    type: 'past',
+    category: 'intensive',
+    image: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800&q=80',
+    highlights: ['80 participants', '6 styles covered', 'Final showcase', 'Guest instructors'],
+    photoCount: 245,
+    videoCount: 12,
+    price: null,
+    media: [
+      { type: 'image', url: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800&q=80', alt: 'Choreography practice' },
+      { type: 'image', url: 'https://images.unsplash.com/photo-1535525153412-5a42439a210d?w=800&q=80', alt: 'Hip hop grooving' },
+      { type: 'image', url: 'https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?w=800&q=80', alt: 'Contemporary floor stretch' },
+      { type: 'video', url: '/bg-dance.mp4', alt: 'Intensive final performance showcase video' }
+    ]
+  },
+  {
+    id: 'winter-showcase-2025',
+    name: 'Winter Showcase 2025',
+    date: '20 December 2025',
+    time: '7:00 PM – 10:00 PM',
+    location: 'Ravindra Natya Grih, Indore',
+    description: 'A magical winter evening of dance performances, student showcases, and year-end celebrations.',
+    longDescription: 'The Winter Showcase marked the end of an incredible year at Geet Studio. Over 150 students performed across 25 acts, showcasing their growth and artistry. The event featured a special contemporary piece by our advanced batch, a Bollywood medley by our beginners, and a surprise Hip-Hop battle between instructors. A night to remember.',
+    type: 'past',
+    category: 'showcase',
+    image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80',
+    highlights: ['150+ performers', '25 acts', 'Instructor battle', 'Year-end celebration'],
+    photoCount: 380,
+    videoCount: 18,
+    price: null,
+    media: [
+      { type: 'image', url: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80', alt: 'Annual showcase performance' },
+      { type: 'image', url: 'https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=800&q=80', alt: 'Jazz group piece' },
+      { type: 'image', url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80', alt: 'Bollywood beginners' },
+      { type: 'video', url: '/bg-dance.mp4', alt: 'Winter showcase dance recap video' }
+    ]
+  },
+  {
+    id: 'republic-day-flash-mob-2026',
+    name: 'Republic Day Flash Mob',
+    date: '26 January 2026',
+    time: '11:00 AM',
+    location: 'Rajwada, Indore',
+    description: 'A surprise flash mob at Rajwada celebrating Republic Day through dance. 50 dancers, 3 songs, 1 unforgettable moment.',
+    longDescription: 'On Republic Day morning, 50 Geet Studio dancers surprised Indore with a flash mob performance at the historic Rajwada palace. The 8-minute performance featured a medley of patriotic songs choreographed in Bollywood, Contemporary, and Hip-Hop styles. The event went viral on social media, reaching over 2 million views.',
+    type: 'past',
+    category: 'special',
+    image: 'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=800&q=80',
+    highlights: ['50 dancers', 'Rajwada location', 'Viral performance', '2M+ views'],
+    photoCount: 120,
+    videoCount: 5,
+    price: null,
+    media: [
+      { type: 'image', url: 'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=800&q=80', alt: 'Flash mob Rajwada crowd' },
+      { type: 'image', url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80', alt: 'Mob formation group' },
+      { type: 'video', url: '/bg-dance.mp4', alt: 'Rajwada flash mob performance video' }
+    ]
+  },
+  {
+    id: 'bollywood-night-2026',
+    name: 'Bollywood Night',
+    date: '14 March 2026',
+    time: '7:00 PM – 11:00 PM',
+    location: 'Geet Studio, Indore',
+    description: 'An all-Bollywood evening with themed performances, costume contest, and social dancing to the biggest Bollywood hits.',
+    longDescription: 'Bollywood Night was a celebration of everything we love about Hindi cinema dance. The evening featured themed performances spanning from classic Bollywood to modern Bollywood fusion, a costume contest, and an open dance floor with DJ playing the biggest Bollywood hits. Over 120 people attended, making it one of our most popular social events.',
+    type: 'past',
+    category: 'social',
+    image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80',
+    highlights: ['Themed performances', 'Costume contest', 'DJ night', '120+ attendees'],
+    photoCount: 200,
+    videoCount: 8,
+    price: null,
+    media: [
+      { type: 'image', url: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80', alt: 'Dance floor lights' },
+      { type: 'image', url: 'https://images.unsplash.com/photo-1545959570-a94084071b5d?w=800&q=80', alt: 'Latin/Bollywood fusion couples' },
+      { type: 'video', url: '/bg-dance.mp4', alt: 'Bollywood Night party highlights video' }
+    ]
+  },
+];
+
+export const getEventById = (id) => events.find((e) => e.id === id);
+export const upcomingEvents = events.filter((e) => e.type === 'upcoming');
+export const pastEvents = events.filter((e) => e.type === 'past');
