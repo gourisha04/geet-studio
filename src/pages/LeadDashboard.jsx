@@ -50,7 +50,9 @@ export default function LeadDashboard() {
           setAnalytics(res);
         }
       } catch (err) {
-        console.error('Failed to load lead analytics:', err);
+        if (err.status !== 401) {
+          console.warn('Note on lead analytics:', err.message);
+        }
       } finally {
         if (!cancelled) setAnalyticsLoading(false);
       }

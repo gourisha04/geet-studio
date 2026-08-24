@@ -25,16 +25,11 @@ export function AuthProvider({ children }) {
         if (!cancelled && data?.success && data?.user) {
           setUser(data.user);
         }
-      } catch {
-        // Not authenticated — that's fine
-        // Fallback: check localStorage for dev-mode mock
-        try {
-          const savedUser = localStorage.getItem('geet_user');
-          if (!cancelled && savedUser) {
-            setUser(JSON.parse(savedUser));
-          }
-        } catch {
-          // ignore
+      } catch (err) {
+        // If API explicitly responds with 401 or status error, user is unauthenticated
+        if (!cancelled) {
+          setUser(null);
+          localStorage.removeItem('geet_user');
         }
       } finally {
         if (!cancelled) setLoading(false);
