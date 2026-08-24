@@ -36,10 +36,11 @@ export function AnalyticsProvider({ children }) {
       console.log('📊 [Analytics]', payload);
     }
     try {
-      // Beacon support for unloads or normal fetch
+      const apiBase = import.meta.env.VITE_API_URL || '';
+      const endpoint = `${apiBase}/api/analytics/log`;
       const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
       if (navigator.sendBeacon) {
-        navigator.sendBeacon('/api/analytics/log', blob);
+        navigator.sendBeacon(endpoint, blob);
       }
     } catch (e) {
       // Silent catch
