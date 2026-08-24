@@ -84,7 +84,7 @@ export default function AboutPreview() {
               Geet Studio is a creative space where dancers of every level come together to learn, express, and perform.
             </p>
             <p className="text-sm text-dark-200 leading-relaxed mb-10">
-              Founded in the heart of Indore, Geet Studio has grown into one of central India's most vibrant dance communities. 
+              Founded by Arpit Mahor (Arpit Mahol) in the heart of Indore, Geet Studio has grown into one of central India's most vibrant dance communities. 
               We believe dance is more than technique — it's a language that connects people, cultures, and emotions. 
               From Bollywood to Contemporary, Hip-Hop to Salsa, our studio is a home for every style and every story.
             </p>

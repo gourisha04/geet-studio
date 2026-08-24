@@ -63,28 +63,16 @@ export default function WelcomeAnimation({ onComplete }) {
 
           {/* Main content */}
           <div className="relative text-center z-10">
-            {/* GEET */}
+            {/* Logo */}
             <div className="overflow-hidden">
-              <motion.h1
-                initial={{ y: 100, opacity: 0 }}
-                animate={phase >= 1 ? { y: 0, opacity: 1 } : {}}
+              <motion.img
+                src="/logos/logo-dark.png"
+                alt="Geet Studio"
+                initial={{ y: 100, opacity: 0, scale: 0.8 }}
+                animate={phase >= 1 ? { y: 0, opacity: 1, scale: 1 } : {}}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className="font-heading text-6xl md:text-8xl lg:text-9xl font-bold tracking-tight text-warm-50"
-              >
-                GEET
-              </motion.h1>
-            </div>
-
-            {/* STUDIO */}
-            <div className="overflow-hidden">
-              <motion.h2
-                initial={{ y: 80, opacity: 0 }}
-                animate={phase >= 1 ? { y: 0, opacity: 1 } : {}}
-                transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="font-heading text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.3em] text-gold-500 -mt-2"
-              >
-                STUDIO
-              </motion.h2>
+                className="h-28 md:h-40 lg:h-48 w-auto object-contain mx-auto"
+              />
             </div>
 
             {/* Tagline */}

@@ -43,6 +43,9 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ============================================================
+   DARK THEME (DEFAULT)
+   ============================================================ */
 body {
   font-family: var(--font-body);
   background-color: var(--color-dark-900);
@@ -50,8 +53,12 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
+/* ============================================================
+   SCROLLBAR (DARK DEFAULT)
+   ============================================================ */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -74,7 +81,9 @@ body {
   color: var(--color-dark-900);
 }
 
-/* Utility classes */
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
 .text-gradient-gold {
   background: linear-gradient(135deg, var(--color-gold-400), var(--color-gold-600));
   -webkit-background-clip: text;
@@ -119,4 +128,16 @@ body {
   inset: 0;
   z-index: 9999;
   pointer-events: none;
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -32,7 +32,7 @@ export default function InstagramFeed() {
         {instagramImages.map((img, i) => (
           <motion.a
             key={i}
-            href="https://instagram.com/geetstudio"
+            href="https://www.instagram.com/the_geetstudio?igsh=YWE4cWVyNXM4OTFu"
             target="_blank"
             rel="noopener noreferrer"
             initial={{ opacity: 0, scale: 0.95 }}
@@ -55,13 +55,13 @@ export default function InstagramFeed() {
 
       <div className="text-center mt-8">
         <a
-          href="https://instagram.com/geetstudio"
+          href="https://www.instagram.com/the_geetstudio?igsh=YWE4cWVyNXM4OTFu"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 text-sm text-gold-500 uppercase tracking-widest hover:text-gold-400 transition-colors duration-300"
         >
           <Instagram className="w-4 h-4" />
-          Follow @geetstudio
+          Follow @the_geetstudio
         </a>
       </div>
     </section>

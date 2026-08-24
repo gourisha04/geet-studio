@@ -73,8 +73,8 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wider text-dark-300 mb-1">Instagram</p>
-                  <a href="https://instagram.com/geetstudio" target="_blank" rel="noopener noreferrer" className="text-sm text-gold-500 hover:text-gold-400 transition-colors">
-                    @geetstudio
+                  <a href="https://www.instagram.com/the_geetstudio?igsh=YWE4cWVyNXM4OTFu" target="_blank" rel="noopener noreferrer" className="text-sm text-gold-500 hover:text-gold-400 transition-colors">
+                    @the_geetstudio
                   </a>
                 </div>
               </div>

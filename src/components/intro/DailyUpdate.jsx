@@ -1,10 +1,30 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
+/**
+ * Returns current date parts in Asia/Kolkata timezone.
+ * Automatically updates daily — no manual admin intervention needed.
+ */
+function getISTDate() {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
+  const parts = formatter.formatToParts(now);
+  const day = parts.find(p => p.type === 'day')?.value || '01';
+  const month = parts.find(p => p.type === 'month')?.value?.toUpperCase() || 'JANUARY';
+  const year = parts.find(p => p.type === 'year')?.value || '2026';
+  return { day, month, year };
+}
+
 export default function DailyUpdate({ onComplete }) {
   const navigate = useNavigate();
+  const [date] = useState(getISTDate);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -51,17 +71,17 @@ export default function DailyUpdate({ onComplete }) {
           Updated Today
         </motion.p>
 
-        {/* Date */}
+        {/* Auto-computed IST Date */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6, duration: 0.8, ease: 'easeOut' }}
         >
           <p className="font-heading text-7xl md:text-9xl font-bold text-warm-50 leading-none">
-            09
+            {date.day}
           </p>
           <p className="font-heading text-2xl md:text-4xl font-light tracking-[0.2em] text-warm-200 mt-2">
-            AUGUST 2026
+            {date.month} {date.year}
           </p>
         </motion.div>
 

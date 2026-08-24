@@ -121,20 +121,21 @@ export default function About() {
             transition={{ duration: 0.6 }}
             className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center"
           >
-            <div className="aspect-square overflow-hidden border border-dark-600 rounded-lg group">
+            <div className="aspect-square overflow-hidden border border-dark-600 rounded-lg group shadow-xl">
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80"
-                alt="Geetanjali 'Geet' Sen"
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80"
+                alt="Arpit Mahor (Arpit Mahol)"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
               />
             </div>
             <div className="md:col-span-2">
-              <p className="text-xs tracking-[0.3em] uppercase text-gold-500 mb-2">Owner & Artistic Director</p>
-              <h3 className="font-heading text-2xl font-bold text-warm-50 mb-4">Geetanjali "Geet" Sen</h3>
+              <p className="text-xs tracking-[0.3em] uppercase text-gold-500 mb-2">Founder & Artistic Director</p>
+              <h3 className="font-heading text-2xl font-bold text-warm-50 mb-4">Arpit Mahor (Arpit Mahol)</h3>
               <p className="text-dark-200 leading-relaxed mb-4">
-                A disciple of legendary classical gurus and trained in contemporary dance at international conservatories, 
-                Geetanjali Sen founded Geet Studio to make Indore a hub for professional dance education in Central India. 
-                She believes that technique is the language of freedom and movement is the truest expression of the soul.
+                A passionate dance artist and visionary entrepreneur, Arpit Mahor founded Geet Studio to create a 
+                premier hub for performing arts in Central India. With years of experience in choreography, event production, 
+                and artist management, Arpit brings together creativity, discipline, and community to build Indore's most 
+                vibrant dance and arts platform.
               </p>
               <p className="text-sm text-dark-300 leading-relaxed italic">
                 "We do not teach you how to copy steps; we teach you how to feel the music and craft your own movements."
@@ -212,9 +213,9 @@ export default function About() {
                 <Mail className="w-4 h-4 text-gold-500" />
                 hello@geetstudio.in
               </div>
-              <a href="https://instagram.com/geetstudio" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-dark-200 hover:text-gold-500 transition-colors">
+              <a href="https://www.instagram.com/the_geetstudio?igsh=YWE4cWVyNXM4OTFu" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-dark-200 hover:text-gold-500 transition-colors">
                 <Instagram className="w-4 h-4 text-gold-500" />
-                @geetstudio
+                @the_geetstudio
               </a>
             </div>
           </motion.div>
