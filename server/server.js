@@ -30,8 +30,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Initialize Database Connection and Admin Seed
-connectDB().then(() => {
-  seedAdminUser();
+// The admin seed only runs against a live database connection, so a failed
+// Atlas handshake can never produce a partial/half-seeded administrator.
+connectDB().then((isConnected) => {
+  if (isConnected) {
+    seedAdminUser();
+  }
 });
 
 // Security & Core Middlewares (Phase 17)

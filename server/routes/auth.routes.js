@@ -121,8 +121,9 @@ router.post('/login', async (req, res, next) => {
       user = inMemoryUsers.get(cleanEmail);
     }
 
-    // Seeded admin fallback check for dev
-    if (!user && cleanEmail.includes('admin')) {
+    // Dev-only convenience fallback. It is disabled in production so the seeded
+    // admin credentials remain the only way to obtain an administrator session.
+    if (!user && process.env.NODE_ENV !== 'production' && cleanEmail.includes('admin')) {
       if (password === 'password123') {
         user = {
           _id: 'admin_id_001',
