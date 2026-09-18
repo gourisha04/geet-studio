@@ -42,9 +42,9 @@ export default function ClassCard({ classData }) {
               </span>
             )}
 
-            {/* Style */}
-            <span className="absolute bottom-4 left-4 text-xs tracking-widest uppercase text-dark-200">
-              {classData.style}
+            {/* Category & Style Badge */}
+            <span className="absolute bottom-4 left-4 text-xs tracking-widest uppercase text-gold-400 font-semibold bg-dark-950/80 px-2.5 py-1 rounded border border-dark-700">
+              {classData.category ? `${classData.category} · ` : ''}{classData.subtype || classData.style}
             </span>
           </div>
 

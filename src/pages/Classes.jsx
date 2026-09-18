@@ -10,12 +10,13 @@ import { normalizeClassRecord } from '../utils/contentAdapters';
 
 const mainCategories = [
   { id: 'ALL', label: 'All Classes', icon: Sparkles },
-  { id: 'DANCE', label: 'Dance', icon: Sparkles },
-  { id: 'MUSIC', label: 'Music', icon: Music },
-  { id: 'FITNESS', label: 'Fitness & Movement', icon: Flame },
+  { id: 'Dance', label: 'Dance', icon: Sparkles },
+  { id: 'Music', label: 'Music', icon: Music },
+  { id: 'Fitness', label: 'Fitness & Movement', icon: Flame },
+  { id: 'Events & Productions', label: 'Events & Productions', icon: Sparkles },
 ];
 
-const danceStyles = ['ALL STYLES', 'Bollywood', 'Hip-Hop', 'Contemporary', 'Salsa', 'Jazz'];
+const danceStyles = ['ALL STYLES', 'Bollywood', 'Hip-Hop', 'Contemporary', 'Salsa', 'Kathak Fusion', 'Freestyle', 'Semi-Classical', 'Classical', 'Heels', 'Choreography'];
 const levelOptions = ['ALL LEVELS', 'Beginner', 'Intermediate'];
 
 export default function Classes() {
@@ -41,18 +42,20 @@ export default function Classes() {
   const filteredClasses = useMemo(() => {
     return classRecords.filter((item) => {
       // Main category matching
-      if (selectedCategory === 'DANCE') {
-        const isDanceStyle = ['Bollywood', 'Hip-Hop', 'Contemporary', 'Salsa', 'Jazz'].includes(item.style);
-        if (!isDanceStyle) return false;
-      } else if (selectedCategory === 'MUSIC') {
-        if (item.style !== 'Music') return false;
-      } else if (selectedCategory === 'FITNESS') {
-        if (item.style !== 'Fitness') return false;
+      if (selectedCategory !== 'ALL' && item.category !== selectedCategory) {
+        // Fallback for older items missing category field
+        if (selectedCategory === 'Dance' && item.category && item.category !== 'Dance') return false;
+        if (selectedCategory === 'Music' && item.category !== 'Music') return false;
+        if (selectedCategory === 'Fitness' && item.category !== 'Fitness') return false;
+        if (selectedCategory === 'Events & Productions' && item.category !== 'Events & Productions') return false;
       }
 
-      // Specific style filter
-      if (selectedStyle !== 'ALL STYLES' && item.style !== selectedStyle) {
-        return false;
+      // Specific style/subtype filter
+      if (selectedStyle !== 'ALL STYLES' && selectedStyle !== 'ALL SUBTYPES') {
+        const itemSubtype = (item.subtype || item.danceStyle || item.musicType || item.fitnessType || item.productionType || item.style || '').toLowerCase();
+        if (!itemSubtype.includes(selectedStyle.toLowerCase())) {
+          return false;
+        }
       }
 
       // Level filter
@@ -64,10 +67,11 @@ export default function Classes() {
       if (searchQuery.trim() !== '') {
         const query = searchQuery.toLowerCase();
         const matchesName = item.name.toLowerCase().includes(query);
-        const matchesStyle = item.style.toLowerCase().includes(query);
+        const matchesCategory = (item.category || '').toLowerCase().includes(query);
+        const matchesSubtype = (item.subtype || item.style || '').toLowerCase().includes(query);
         const matchesInstructor = item.instructor.toLowerCase().includes(query);
         const matchesDesc = item.description.toLowerCase().includes(query);
-        if (!matchesName && !matchesStyle && !matchesInstructor && !matchesDesc) {
+        if (!matchesName && !matchesCategory && !matchesSubtype && !matchesInstructor && !matchesDesc) {
           return false;
         }
       }
@@ -85,7 +89,7 @@ export default function Classes() {
 
   const hasActiveFilters =
     selectedCategory !== 'ALL' ||
-    selectedStyle !== 'ALL STYLES' ||
+    (selectedStyle !== 'ALL STYLES' && selectedStyle !== 'ALL SUBTYPES') ||
     selectedLevel !== 'ALL LEVELS' ||
     searchQuery.trim() !== '';
 
@@ -110,7 +114,7 @@ export default function Classes() {
               Explore Our <span className="text-gold-500 font-light italic">Classes</span>
             </h1>
             <p className="text-base md:text-lg text-dark-200 font-light max-w-2xl mx-auto leading-relaxed">
-              From beginner foundations to advanced masterclasses across Dance, Music, and Fitness. Find your discipline and keep moving.
+              From beginner foundations to masterclasses across Dance, Music, Fitness, and Events & Productions.
             </p>
           </div>
         </section>
@@ -132,9 +136,7 @@ export default function Classes() {
                       key={cat.id}
                       onClick={() => {
                         setSelectedCategory(cat.id);
-                        if (cat.id !== 'DANCE' && cat.id !== 'ALL') {
-                          setSelectedStyle('ALL STYLES');
-                        }
+                        setSelectedStyle('ALL STYLES');
                       }}
                       className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
                         isActive
@@ -175,8 +177,8 @@ export default function Classes() {
             {/* Secondary Controls: Dance Styles & Level Filter */}
             <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-dark-800/40">
               
-              {/* Dance Styles Pills (visible when ALL or DANCE category selected) */}
-              {(selectedCategory === 'ALL' || selectedCategory === 'DANCE') ? (
+              {/* Dance Styles / Subtype Pills */}
+              {(selectedCategory === 'ALL' || selectedCategory === 'Dance') ? (
                 <div className="flex flex-wrap items-center gap-1.5 text-xs">
                   <span className="text-dark-400 uppercase font-semibold tracking-widest text-[10px] mr-1">STYLE:</span>
                   {danceStyles.map((style) => (
@@ -195,7 +197,7 @@ export default function Classes() {
                 </div>
               ) : (
                 <div className="text-xs text-gold-400/90 font-medium">
-                  Showing {selectedCategory === 'MUSIC' ? 'Vocal & Instrumental' : 'Fitness, Yoga & Aerial'} Classes
+                  Showing {selectedCategory} Classes & Programs
                 </div>
               )}
 

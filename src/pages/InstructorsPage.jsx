@@ -14,7 +14,7 @@ const defaultInstructor = {
   experience: '5+ Years',
   bio: 'Arpit Mahor founded Geet Studio with the belief that art should never be restricted by rules, labels, or expectations. His work sits at the intersection of movement, storytelling, psychology, and human expression.',
   image: '/arpit-mahor.jpg',
-  instagram: 'https://www.instagram.com/the_geetstudio/',
+  instagram: 'https://www.instagram.com/be_like_arpit/',
 };
 
 export default function InstructorsPage() {
@@ -188,7 +188,7 @@ export default function InstructorsPage() {
                       className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gold-500 hover:text-gold-400 transition-colors p-2"
                     >
                       <Instagram className="w-5 h-5" />
-                      @the_geetstudio
+                      @be_like_arpit
                     </a>
                   )}
                 </div>

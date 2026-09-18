@@ -264,7 +264,18 @@ export default function AdminDashboard() {
       fetchCommunityMembers();
       fetchDashboardStats();
     } catch (err) {
-      alert(err.message || 'Failed to delete member');
+      alert(err.message || 'Failed to delete Community Member');
+    }
+  };
+
+  const handleDeleteQuery = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this enquiry?')) return;
+    try {
+      await api.delete(`/api/queries/${id}`);
+      fetchQueries();
+      fetchDashboardStats();
+    } catch (err) {
+      alert(err.message || 'Failed to delete query');
     }
   };
 
@@ -645,8 +656,8 @@ export default function AdminDashboard() {
                 <thead>
                   <tr className="border-b border-dark-700 text-gold-500 uppercase tracking-wider">
                     <th className="py-3 px-4">Class Title</th>
-                    <th className="py-3 px-4">Timing</th>
-                    <th className="py-3 px-4">Location</th>
+                    <th className="py-3 px-4">Category / Subtype</th>
+                    <th className="py-3 px-4">Seats</th>
                     <th className="py-3 px-4">Fees</th>
                     <th className="py-3 px-4">Status</th>
                     <th className="py-3 px-4">Actions</th>
@@ -656,37 +667,51 @@ export default function AdminDashboard() {
                   {classesList.filter(c => c.type !== 'workshop').length === 0 ? (
                     <tr><td colSpan="6" className="py-6 text-center opacity-60">No classes stored in database yet.</td></tr>
                   ) : (
-                    classesList.filter(c => c.type !== 'workshop').map((cls) => (
-                      <tr key={cls._id} className="border-b border-dark-700/30">
-                        <td className="py-3.5 px-4 font-bold">{cls.name || cls.title}</td>
-                        <td className="py-3.5 px-4">{cls.classTiming || 'Regular Batch'}</td>
-                        <td className="py-3.5 px-4 opacity-80">{cls.location || 'Indore'}</td>
-                        <td className="py-3.5 px-4 font-mono text-gold-400">₹{cls.fees || cls.finalPayableAmount || 3000}</td>
-                        <td className="py-3.5 px-4">
-                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${
-                            cls.registrationStatus === 'OPEN' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-red-500/20 text-red-400 border border-red-500/40'
-                          }`}>
-                            {cls.registrationStatus || 'OPEN'}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 flex items-center gap-2">
-                          <button
-                            onClick={() => { setSelectedItem(cls); setFormData(cls); setModalType('editClass'); }}
-                            className="p-1.5 text-blue-400 hover:bg-blue-500/10 rounded cursor-pointer"
-                            title="Edit"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteClass(cls._id)}
-                            className="p-1.5 text-red-400 hover:bg-red-500/10 rounded cursor-pointer"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                    classesList.filter(c => c.type !== 'workshop').map((cls) => {
+                      const cat = cls.category || 'Dance';
+                      const sub = cls.danceStyle || cls.musicType || cls.fitnessType || cls.productionType || cls.style || 'General';
+                      const enrolled = cls.enrolledSeats || 0;
+                      const total = cls.totalSeats || 20;
+                      return (
+                        <tr key={cls._id} className="border-b border-dark-700/30">
+                          <td className="py-3.5 px-4 font-bold">{cls.name || cls.title}</td>
+                          <td className="py-3.5 px-4">
+                            <span className="font-semibold text-gold-400">{cat}</span>
+                            <span className="opacity-70 text-[11px] block">{sub}</span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="font-mono font-bold text-warm-50">{enrolled} / {total}</span>
+                            <span className="opacity-60 text-[10px] block">({Math.max(0, total - enrolled)} left)</span>
+                          </td>
+                          <td className="py-3.5 px-4 font-mono text-gold-400">₹{cls.fees || cls.finalPayableAmount || 3000}</td>
+                          <td className="py-3.5 px-4">
+                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${
+                              cls.registrationStatus === 'OPEN' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
+                              cls.registrationStatus === 'FULL' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' :
+                              'bg-red-500/20 text-red-400 border border-red-500/40'
+                            }`}>
+                              {cls.registrationStatus || 'OPEN'}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 flex items-center gap-2">
+                            <button
+                              onClick={() => { setSelectedItem(cls); setFormData(cls); setModalType('editClass'); }}
+                              className="p-1.5 text-blue-400 hover:bg-blue-500/10 rounded cursor-pointer"
+                              title="Edit"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClass(cls._id)}
+                              className="p-1.5 text-red-400 hover:bg-red-500/10 rounded cursor-pointer"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -1159,11 +1184,12 @@ export default function AdminDashboard() {
                     <th className="py-3 px-4">Message</th>
                     <th className="py-3 px-4">Date/Time</th>
                     <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {queriesList.length === 0 ? (
-                    <tr><td colSpan="6" className="py-6 text-center opacity-60">No general enquiries recorded yet.</td></tr>
+                    <tr><td colSpan="7" className="py-6 text-center opacity-60">No general enquiries recorded yet.</td></tr>
                   ) : (
                     queriesList.map((qry) => (
                       <tr key={qry._id} className="border-b border-dark-700/30">
@@ -1182,6 +1208,15 @@ export default function AdminDashboard() {
                             <option value="IN_PROGRESS">IN_PROGRESS</option>
                             <option value="RESOLVED">RESOLVED</option>
                           </select>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <button
+                            onClick={() => handleDeleteQuery(qry._id)}
+                            className="p-1.5 text-red-400 hover:bg-red-500/10 rounded cursor-pointer"
+                            title="Delete Enquiry"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -1280,6 +1315,131 @@ export default function AdminDashboard() {
               {modalType.includes('Class') && (
                 <>
                   <div>
+                    <label className="block opacity-70 mb-1">Main Category *</label>
+                    <select
+                      value={formData.category || 'Dance'}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      className="w-full p-2.5 rounded border border-dark-700 bg-dark-800 text-warm-50 font-semibold"
+                    >
+                      <option value="Dance">Dance</option>
+                      <option value="Music">Music</option>
+                      <option value="Fitness">Fitness</option>
+                      <option value="Events & Productions">Events & Productions</option>
+                    </select>
+                  </div>
+
+                  {(formData.category === 'Dance' || !formData.category) && (
+                    <div>
+                      <label className="block opacity-70 mb-1">Dance Style *</label>
+                      <select
+                        value={formData.danceStyle || 'Bollywood'}
+                        onChange={(e) => setFormData({ ...formData, danceStyle: e.target.value })}
+                        className="w-full p-2.5 rounded border border-dark-700 bg-dark-800 text-warm-50"
+                      >
+                        {['Bollywood', 'Hip-Hop', 'Contemporary', 'Salsa', 'Kathak Fusion', 'Freestyle', 'Semi-Classical', 'Classical', 'Heels', 'Choreography'].map((style) => (
+                          <option key={style} value={style}>{style}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {formData.category === 'Music' && (
+                    <div>
+                      <label className="block opacity-70 mb-1">Music Type / Discipline *</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Vocal Training, Instrumental, Music Production"
+                        value={formData.musicType || ''}
+                        onChange={(e) => setFormData({ ...formData, musicType: e.target.value })}
+                        className="w-full p-2.5 rounded border border-dark-700 bg-dark-800 text-warm-50"
+                      />
+                    </div>
+                  )}
+
+                  {formData.category === 'Fitness' && (
+                    <div>
+                      <label className="block opacity-70 mb-1">Fitness Type *</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Zumba, Yoga, Aerobics, Functional Fitness"
+                        value={formData.fitnessType || ''}
+                        onChange={(e) => setFormData({ ...formData, fitnessType: e.target.value })}
+                        className="w-full p-2.5 rounded border border-dark-700 bg-dark-800 text-warm-50"
+                      />
+                    </div>
+                  )}
+
+                  {formData.category === 'Events & Productions' && (
+                    <div>
+                      <label className="block opacity-70 mb-1">Production / Event Type *</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Event Management, Show Production, Stage Performance"
+                        value={formData.productionType || ''}
+                        onChange={(e) => setFormData({ ...formData, productionType: e.target.value })}
+                        className="w-full p-2.5 rounded border border-dark-700 bg-dark-800 text-warm-50"
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block opacity-70 mb-1">Instructor Name</label>
+                    <input
+                      type="text"
+                      value={formData.instructor || 'Arpit Mahor'}
+                      onChange={(e) => setFormData({ ...formData, instructor: e.target.value })}
+                      className="w-full p-2.5 rounded border border-dark-700 bg-dark-800 text-warm-50"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block opacity-70 mb-1">Total Seats *</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={formData.totalSeats ?? 20}
+                        onChange={(e) => setFormData({ ...formData, totalSeats: Number(e.target.value) })}
+                        className="w-full p-2.5 rounded border border-dark-700 bg-dark-800 text-warm-50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block opacity-70 mb-1">Enrolled Seats</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={formData.enrolledSeats ?? 0}
+                        onChange={(e) => setFormData({ ...formData, enrolledSeats: Number(e.target.value) })}
+                        className="w-full p-2.5 rounded border border-dark-700 bg-dark-800 text-warm-50"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block opacity-70 mb-1">Registration Status</label>
+                      <select
+                        value={formData.registrationStatus || 'OPEN'}
+                        onChange={(e) => setFormData({ ...formData, registrationStatus: e.target.value })}
+                        className="w-full p-2.5 rounded border border-dark-700 bg-dark-800 text-warm-50 font-semibold"
+                      >
+                        <option value="OPEN">OPEN</option>
+                        <option value="FULL">FULL</option>
+                        <option value="CLOSED">CLOSED</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block opacity-70 mb-1">Fees (₹)</label>
+                      <input
+                        type="number"
+                        value={formData.fees || 3000}
+                        onChange={(e) => setFormData({ ...formData, fees: Number(e.target.value) })}
+                        className="w-full p-2.5 rounded border border-dark-700 bg-dark-800 text-warm-50"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
                     <label className="block opacity-70 mb-1">Class Type</label>
                     <select
                       value={formData.type || 'class'}
@@ -1290,6 +1450,7 @@ export default function AdminDashboard() {
                       <option value="workshop">Workshop</option>
                     </select>
                   </div>
+
                   <div>
                     <label className="block opacity-70 mb-1">Timing</label>
                     <input
@@ -1299,15 +1460,7 @@ export default function AdminDashboard() {
                       className="w-full p-2.5 rounded border border-dark-700 bg-dark-800 text-warm-50"
                     />
                   </div>
-                  <div>
-                    <label className="block opacity-70 mb-1">Fees (₹)</label>
-                    <input
-                      type="number"
-                      value={formData.fees || 3000}
-                      onChange={(e) => setFormData({ ...formData, fees: Number(e.target.value) })}
-                      className="w-full p-2.5 rounded border border-dark-700 bg-dark-800 text-warm-50"
-                    />
-                  </div>
+
                   <div>
                     <label className="block opacity-70 mb-1">Optional Thumbnail</label>
                     <div className="flex items-center gap-3 mb-3">

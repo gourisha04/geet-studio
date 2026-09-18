@@ -9,11 +9,15 @@ const router = express.Router();
 
 const handleCreateEnrollmentRequest = async (req, res, next) => {
   try {
-    const { classId, className, name, studentName, email, phone, message, batch } = req.body;
+    const { classId, name, studentName, email, phone, message, batch } = req.body;
     const finalStudentName = studentName || name;
 
     if (!finalStudentName || !email || !phone) {
       return res.status(400).json({ success: false, message: 'Student name, email, and phone number are required.' });
+    }
+
+    if (!classId) {
+      return res.status(400).json({ success: false, message: 'A valid class selection (classId) is required.' });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -21,29 +25,51 @@ const handleCreateEnrollmentRequest = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
     }
 
-    const enrollmentId = `ENR-REQ-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
-
-    let targetClassId = classId;
-    if (classId) {
-      try {
-        if (mongoose.Types.ObjectId.isValid(classId)) {
-          const cls = await Class.findById(classId);
-          if (cls) targetClassId = cls._id;
-        } else {
-          const cls = await Class.findOne({ $or: [{ name: classId }, { title: classId }] });
-          if (cls) targetClassId = cls._id;
-        }
-      } catch (e) {
-        console.warn('Class lookup note:', e.message);
-      }
+    // Resolve classId against MongoDB
+    let classDoc = null;
+    if (mongoose.Types.ObjectId.isValid(classId)) {
+      classDoc = await Class.findById(classId);
+    } else {
+      classDoc = await Class.findOne({ $or: [{ name: classId }, { title: classId }] });
     }
+
+    if (!classDoc) {
+      return res.status(404).json({ success: false, message: 'The selected class could not be found.' });
+    }
+
+    // Atomic Concurrency-Safe Seat Allocation
+    const allocatedClass = await Class.findOneAndUpdate(
+      {
+        _id: classDoc._id,
+        registrationStatus: 'OPEN',
+        availableSeats: { $gt: 0 },
+      },
+      {
+        $inc: { enrolledSeats: 1, availableSeats: -1 },
+      },
+      { new: true }
+    );
+
+    if (!allocatedClass) {
+      return res.status(409).json({
+        success: false,
+        message: 'This class is either full or not currently open for registration.',
+      });
+    }
+
+    // If available seats drop to 0 or below, update status to FULL
+    if (allocatedClass.availableSeats <= 0) {
+      await Class.updateOne({ _id: allocatedClass._id }, { registrationStatus: 'FULL' });
+    }
+
+    const enrollmentId = `ENR-REQ-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
 
     let savedEnrollment;
     try {
       savedEnrollment = await Enrollment.create({
         enrollmentId,
-        classId: targetClassId || classId,
-        className: className || '',
+        classId: allocatedClass._id,
+        className: allocatedClass.name, // Always derived from DB
         studentName: finalStudentName,
         email,
         phone,
@@ -52,6 +78,11 @@ const handleCreateEnrollmentRequest = async (req, res, next) => {
       });
     } catch (dbErr) {
       console.error('Enrollment DB save error:', dbErr.message);
+      // Rollback atomic seat increment on failure
+      await Class.updateOne(
+        { _id: allocatedClass._id },
+        { $inc: { enrolledSeats: -1, availableSeats: 1 }, registrationStatus: 'OPEN' }
+      );
       return res.status(500).json({ success: false, message: 'Failed to save enrollment request in database.' });
     }
 

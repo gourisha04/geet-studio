@@ -103,4 +103,14 @@ router.patch('/queries/:id/status', protect, requireRole('admin'), async (req, r
   }
 });
 
+// DELETE /api/queries/:id — Admin delete query
+router.delete('/queries/:id', protect, requireRole('admin'), async (req, res, next) => {
+  try {
+    await Query.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Query deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

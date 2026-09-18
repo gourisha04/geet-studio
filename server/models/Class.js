@@ -19,9 +19,20 @@ const classSchema = new mongoose.Schema(
       default: 'class',
       index: true,
     },
+    category: {
+      type: String,
+      enum: ['Dance', 'Music', 'Fitness', 'Events & Productions'],
+      default: 'Dance',
+      index: true,
+    },
+    danceStyle: { type: String, default: 'Bollywood' },
+    musicType: { type: String, default: '' },
+    fitnessType: { type: String, default: '' },
+    productionType: { type: String, default: '' },
+    instructor: { type: String, default: 'Arpit Mahor' },
     serviceId: { type: mongoose.Schema.Types.Mixed, ref: 'Service', required: false },
     instructorId: { type: mongoose.Schema.Types.Mixed, ref: 'Instructor', required: false },
-    description: { type: String, default: 'Studio dance instruction at Geet Studio.' },
+    description: { type: String, default: 'Studio instruction at Geet Studio.' },
     startDate: { type: Date, default: Date.now },
     endDate: { type: Date, default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
     days: [{ type: String }],
@@ -32,6 +43,7 @@ const classSchema = new mongoose.Schema(
     location: { type: String, default: 'Geet Studio, Indore' },
     batches: [batchSchema],
     totalSeats: { type: Number, default: 20 },
+    enrolledSeats: { type: Number, default: 0 },
     availableSeats: { type: Number, default: 20 },
     fees: { type: Number, default: 3000 },
     discount: { type: Number, default: 0 },
@@ -50,6 +62,6 @@ const classSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-classSchema.index({ type: 1, registrationStatus: 1 });
+classSchema.index({ type: 1, category: 1, registrationStatus: 1 });
 
 export default mongoose.models.Class || mongoose.model('Class', classSchema);

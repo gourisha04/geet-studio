@@ -11,7 +11,7 @@ const instructorData = {
   experience: '10+ Years',
   bio: 'Arpit Mahor founded Geet Studio with the belief that art should never be restricted by rules, labels, or expectations. His work sits at the intersection of movement, storytelling, psychology, and human expression.',
   image: '/arpit-mahor.jpg',
-  instagram: 'https://www.instagram.com/the_geetstudio/',
+  instagram: 'https://www.instagram.com/be_like_arpit/',
 };
 
 export default function InstructorsPreview() {
