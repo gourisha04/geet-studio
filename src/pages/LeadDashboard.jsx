@@ -1,71 +1,113 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { ShieldAlert, Clock, CheckCircle2, User, Image, Link as LinkIcon, Save, Sparkles, Upload, Eye, Mail, Phone, Calendar, ArrowUpRight, TrendingUp, Camera, Video, Trash2, Plus, Film } from 'lucide-react';
+import {
+  ShieldAlert, Clock, CheckCircle2, User, Image as ImageIcon, Link as LinkIcon, Save,
+  Sparkles, Upload, Eye, Mail, Phone, Calendar, ArrowUpRight, TrendingUp,
+  Camera, Video, Trash2, Plus, Film, X, Check, MapPin, Award
+} from 'lucide-react';
 import { api } from '../utils/api';
 
+const categories = [
+  'Artists', 'Dancers', 'Anchors', 'Singers', 'DJs', 'Musicians',
+  'Event Planners', 'Sound Vendors', 'Light Vendors', 'LED Vendors',
+  'Decor Vendors', 'Event Managers', 'Other'
+];
+
 export default function LeadDashboard() {
-  const { user, isAuthenticated, login } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { isDark } = useTheme();
 
-  // Analytics state
-  const [analytics, setAnalytics] = useState({ totalViews: 0, totalReveals: 0, recentInquiries: [] });
-  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  // Lead profile state
-  const [status, setStatus] = useState('APPROVED'); // PENDING | APPROVED | REJECTED
+  // Gallery Picker Modal State
+  const [showGalleryPicker, setShowGalleryPicker] = useState(false);
+  const [galleryPickerTarget, setGalleryPickerTarget] = useState('profile'); // 'profile' | 'portfolioPhoto' | 'portfolioVideo'
+  const [studioGallery, setStudioGallery] = useState([]);
+
+  // Member Profile State
   const [profile, setProfile] = useState({
-    name: user?.name || 'Aarav Sharma',
-    email: user?.email || 'aarav.dance@gmail.com',
-    phone: '8770409447',
+    _id: '',
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
     category: 'Dancers',
-    profession: 'Bollywood & Freestyle Choreographer',
-    bio: 'Experienced choreographer leading workshops, sangeet acts, and stage performances across MP.',
-    services: 'Sangeet Choreography, Solo Acts, Dance Workshops, Judge',
+    profession: 'Choreographer',
+    bio: '',
+    services: 'Sangeet Choreography, Solo Performance',
+    experience: '3+ Years',
     location: 'Indore, MP',
     city: 'Indore',
     area: 'Vijay Nagar',
-    instagram: 'https://instagram.com/aarav_dance',
-    youtube: 'https://youtube.com',
+    instagram: '',
+    youtube: '',
     profileImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80',
-    portfolioPhotos: [
-      'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800&q=80',
-      'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80',
-    ],
-    portfolioVideo: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    portfolioPhotos: [],
+    portfolioVideos: [],
+    status: 'PENDING',
   });
 
-  const [newPhotoInput, setNewPhotoInput] = useState('');
-  const [hasPendingChanges, setHasPendingChanges] = useState(false);
-  const [savedSuccess, setSavedSuccess] = useState(false);
+  const [newVideoUrl, setNewVideoUrl] = useState('');
+
+  // Load Member Profile from MongoDB
+  const loadProfile = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/api/community/lead/me');
+      if (res?.success && res?.data) {
+        const d = res.data;
+        setProfile({
+          _id: d._id || '',
+          name: d.name || user?.name || '',
+          email: d.email || user?.email || '',
+          phone: d.phone || user?.phone || '',
+          category: d.category || 'Dancers',
+          profession: d.profession || 'Choreographer',
+          bio: d.bio || '',
+          services: Array.isArray(d.services) ? d.services.join(', ') : (d.services || ''),
+          experience: d.experience || '3+ Years',
+          location: d.location || 'Indore, MP',
+          city: d.city || 'Indore',
+          area: d.area || '',
+          instagram: d.socialLinks?.instagram || '',
+          youtube: d.socialLinks?.youtube || '',
+          profileImage: typeof d.profileImage === 'string' ? d.profileImage : (d.profileImage?.url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80'),
+          portfolioPhotos: Array.isArray(d.portfolioPhotos) ? d.portfolioPhotos.map(p => typeof p === 'string' ? p : p.url) : [],
+          portfolioVideos: Array.isArray(d.portfolioVideos) ? d.portfolioVideos.map(v => typeof v === 'string' ? v : v.url) : [],
+          status: d.status || 'PENDING',
+        });
+      }
+    } catch (err) {
+      console.warn('Profile fetch note:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load Studio Gallery for media picker
+  const loadGallery = async () => {
+    try {
+      const res = await api.get('/api/gallery');
+      if (res?.success && Array.isArray(res.data)) {
+        setStudioGallery(res.data);
+      }
+    } catch (err) {
+      console.warn('Studio gallery fetch error:', err.message);
+    }
+  };
 
   useEffect(() => {
-    let cancelled = false;
-    const fetchAnalytics = async () => {
-      try {
-        const res = await api.get('/api/community/lead/analytics');
-        if (!cancelled && res?.success) {
-          setAnalytics(res);
-        }
-      } catch (err) {
-        if (err.status !== 401) {
-          console.warn('Note on lead analytics:', err.message);
-        }
-      } finally {
-        if (!cancelled) setAnalyticsLoading(false);
-      }
-    };
     if (isAuthenticated) {
-      fetchAnalytics();
-    } else {
-      setAnalyticsLoading(false);
+      loadProfile();
+      loadGallery();
     }
-    return () => { cancelled = true; };
   }, [isAuthenticated]);
 
-  // If not logged in as lead, prompt user to Register or Login
   if (!isAuthenticated) {
     return (
       <div className={`pt-32 pb-24 min-h-screen flex items-center justify-center transition-colors ${isDark ? 'bg-dark-950 text-warm-50' : 'bg-warm-50 text-dark-950'}`}>
@@ -73,24 +115,22 @@ export default function LeadDashboard() {
           <div className="w-14 h-14 rounded-2xl bg-gold-500/10 text-gold-500 flex items-center justify-center mx-auto mb-4 border border-gold-500/30">
             <Sparkles className="w-7 h-7" />
           </div>
-          <h2 className="font-heading text-2xl font-bold mb-2">Community Lead Portal</h2>
+          <h2 className="font-heading text-2xl font-bold mb-2">Community Member Portal</h2>
           <p className="text-xs opacity-80 mb-6 leading-relaxed">
-            Register or sign in to create and manage your official Geet Studio Community lead profile.
+            Register or sign in to manage your official Geet Studio Community Member profile.
           </p>
-
           <div className="space-y-3">
             <Link
               to="/register"
               className="w-full py-3.5 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-widest hover:bg-gold-400 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg rounded-xl"
             >
-              Register as Community Lead <ArrowUpRight className="w-4 h-4" />
+              Register as Community Member <ArrowUpRight className="w-4 h-4" />
             </Link>
-
             <Link
               to="/login"
               className="w-full py-3.5 border border-gold-500/40 text-gold-400 font-bold text-xs uppercase tracking-widest hover:bg-gold-500/10 transition-all flex items-center justify-center gap-2 cursor-pointer rounded-xl"
             >
-              Already a Lead? Sign In
+              Already a Member? Sign In
             </Link>
           </div>
         </div>
@@ -98,458 +138,558 @@ export default function LeadDashboard() {
     );
   }
 
-  const handleSaveProfile = (e) => {
+  // Profile Save Handler (MongoDB persistence)
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
-    setHasPendingChanges(true);
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
+    setSaving(true);
+    setErrorMsg('');
+    setSaveSuccess(false);
+
+    try {
+      const res = await api.put('/api/community/lead/me', {
+        ...profile,
+        services: profile.services.split(',').map(s => s.trim()).filter(Boolean),
+        portfolioPhotos: profile.portfolioPhotos,
+        portfolioVideos: profile.portfolioVideos,
+      });
+
+      if (res?.success && res?.data) {
+        const d = res.data;
+        setProfile((prev) => ({
+          ...prev,
+          _id: d._id || prev._id,
+          status: d.status || prev.status,
+        }));
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 4000);
+      } else {
+        throw new Error(res?.message || 'Failed to save profile changes.');
+      }
+    } catch (err) {
+      setErrorMsg(err.message || 'Error saving profile to database.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleAddPhoto = () => {
-    if (!newPhotoInput.trim()) return;
-    if (profile.portfolioPhotos.length >= 4) return;
+  // Direct File Upload Handler for Profile / Portfolio Photos
+  const handleFileUpload = (e, targetType) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64Data = reader.result;
+      if (targetType === 'profile') {
+        setProfile({ ...profile, profileImage: base64Data });
+      } else if (targetType === 'portfolioPhoto') {
+        setProfile({ ...profile, portfolioPhotos: [...profile.portfolioPhotos, base64Data] });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Gallery Picker Selection Handler
+  const handleSelectGalleryItem = (mediaUrl) => {
+    if (galleryPickerTarget === 'profile') {
+      setProfile({ ...profile, profileImage: mediaUrl });
+    } else if (galleryPickerTarget === 'portfolioPhoto') {
+      setProfile({ ...profile, portfolioPhotos: [...profile.portfolioPhotos, mediaUrl] });
+    } else if (galleryPickerTarget === 'portfolioVideo') {
+      setProfile({ ...profile, portfolioVideos: [...profile.portfolioVideos, mediaUrl] });
+    }
+    setShowGalleryPicker(false);
+  };
+
+  // Video URL Add Handler
+  const handleAddVideoUrl = () => {
+    if (!newVideoUrl.trim()) return;
     setProfile({
       ...profile,
-      portfolioPhotos: [...profile.portfolioPhotos, newPhotoInput.trim()],
+      portfolioVideos: [...profile.portfolioVideos, newVideoUrl.trim()],
     });
-    setNewPhotoInput('');
+    setNewVideoUrl('');
   };
 
   const handleRemovePhoto = (index) => {
-    const updated = profile.portfolioPhotos.filter((_, i) => i !== index);
-    setProfile({ ...profile, portfolioPhotos: updated });
+    setProfile({
+      ...profile,
+      portfolioPhotos: profile.portfolioPhotos.filter((_, i) => i !== index),
+    });
   };
 
-  const handleRemoveVideo = () => {
-    setProfile({ ...profile, portfolioVideo: '' });
+  const handleRemoveVideo = (index) => {
+    setProfile({
+      ...profile,
+      portfolioVideos: profile.portfolioVideos.filter((_, i) => i !== index),
+    });
   };
 
   return (
     <div className={`pt-28 pb-24 min-h-screen transition-colors ${isDark ? 'bg-dark-950 text-warm-50' : 'bg-warm-50 text-dark-950'}`}>
       <div className="max-w-6xl mx-auto px-4 md:px-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 border-b border-dark-700/40 pb-6">
-          <div>
-            <span className="px-3 py-1 text-[10px] font-bold bg-gold-500/10 border border-gold-500/30 text-gold-500 rounded uppercase tracking-wider mb-2 inline-block">
-              Lead Dashboard
-            </span>
-            <h1 className="font-heading text-3xl md:text-4xl font-bold">
-              My Profile <span className="text-gold-500 font-light italic">& Services</span>
-            </h1>
+        
+        {/* Header Bar */}
+        <div className={`p-6 md:p-8 rounded-3xl border mb-8 flex flex-col md:flex-row items-center justify-between gap-6 ${
+          isDark ? 'bg-dark-900 border-dark-700 shadow-2xl' : 'bg-white border-warm-200 shadow-xl'
+        }`}>
+          <div className="flex items-center gap-5">
+            <div className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-gold-500 shadow-lg flex-shrink-0">
+              <img src={profile.profileImage} alt={profile.name} className="w-full h-full object-cover" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded uppercase tracking-wider ${
+                  profile.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
+                  profile.status === 'REJECTED' ? 'bg-red-500/20 text-red-400 border border-red-500/40' :
+                  'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                }`}>
+                  Status: {profile.status}
+                </span>
+                {profile._id && (
+                  <span className="text-[10px] font-mono opacity-60">ID: {profile._id}</span>
+                )}
+              </div>
+              <h1 className="font-heading text-2xl md:text-3xl font-bold">{profile.name || 'Community Member'}</h1>
+              <p className="text-xs text-gold-500 font-medium mt-0.5">{profile.profession || 'Artist Profile'}</p>
+            </div>
           </div>
 
-          {/* Status Badge */}
-          <div className="flex items-center gap-3">
-            {status === 'APPROVED' ? (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Profile Publicly Approved</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">
-                <Clock className="w-4 h-4" />
-                <span>Pending Admin Approval</span>
-              </div>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            {profile._id && profile.status === 'APPROVED' && (
+              <Link
+                to={`/community/${profile._id}`}
+                target="_blank"
+                className="flex-1 md:flex-initial px-4 py-3 border border-gold-500/40 text-gold-400 hover:bg-gold-500/10 text-xs font-bold uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Eye className="w-4 h-4" /> View Public Profile
+              </Link>
             )}
           </div>
         </div>
 
-        {hasPendingChanges && (
-          <div className="mb-8 p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs flex items-center gap-3">
-            <Clock className="w-5 h-5 shrink-0 text-amber-400" />
+        {/* Status Notification Alert */}
+        {profile.status === 'PENDING' && (
+          <div className="mb-8 p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs flex items-center gap-3 shadow-md">
+            <Clock className="w-5 h-5 flex-shrink-0" />
             <div>
-              <p className="font-bold">Pending Changes Awaiting Admin Review</p>
-              <p className="opacity-90">Major field updates (Name, Category, Bio, Portfolio) require Admin review. Your currently approved version remains live on `/community`.</p>
+              <p className="font-bold text-sm">Profile Under Review</p>
+              <p className="opacity-90 mt-0.5">Your profile is submitted and currently under review by Geet Studio administration. It will be visible in the public directory once approved.</p>
             </div>
           </div>
         )}
 
-        {savedSuccess && (
-          <div className="mb-8 p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-xs flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
-            <p className="font-bold">Profile update submitted successfully!</p>
+        {saveSuccess && (
+          <div className="mb-8 p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-3 shadow-md">
+            <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+            <div>
+              <p className="font-bold text-sm">Profile Saved Successfully!</p>
+              <p className="opacity-90 mt-0.5">Your Community Member profile document has been stored in MongoDB.</p>
+            </div>
           </div>
         )}
 
-        {/* Analytics Section */}
-        <div className="mb-10">
-          <h2 className="font-heading text-xl font-bold mb-4 text-gold-500 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" /> 7-Day Performance & Reach
-          </h2>
-          {analyticsLoading ? (
-            <div className="h-32 flex items-center justify-center border border-dashed border-dark-700/50 rounded-2xl">
-              <span className="text-sm opacity-60">Loading stats...</span>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {/* Profile Reach */}
-                <div className={`p-6 rounded-2xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-xs uppercase tracking-wider opacity-75">Profile Views</span>
-                    <span className="w-8 h-8 rounded-lg bg-gold-500/10 flex items-center justify-center text-gold-500">
-                      <Eye className="w-4 h-4" />
-                    </span>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-heading font-bold text-gold-500">{analytics.totalViews}</span>
-                    <span className="text-xs text-emerald-400 font-semibold flex items-center gap-0.5">
-                      <ArrowUpRight className="w-3 h-3" /> +14.2%
-                    </span>
-                  </div>
-                  <p className="text-[11px] opacity-60 mt-1">Unique visitor impressions in Indore</p>
-                </div>
+        {errorMsg && (
+          <div className="mb-8 p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center font-medium">
+            {errorMsg}
+          </div>
+        )}
 
-                {/* Contact Reveals */}
-                <div className={`p-6 rounded-2xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-xs uppercase tracking-wider opacity-75">Contact Details Revealed</span>
-                    <span className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
-                      <Mail className="w-4 h-4" />
-                    </span>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-heading font-bold text-purple-400">{analytics.totalReveals}</span>
-                    <span className="text-xs text-emerald-400 font-semibold flex items-center gap-0.5">
-                      <ArrowUpRight className="w-3 h-3" /> +8.3%
-                    </span>
-                  </div>
-                  <p className="text-[11px] opacity-60 mt-1">People who requested your phone/email</p>
-                </div>
+        {/* Spacious Member Profile Editor Form */}
+        <form onSubmit={handleSaveProfile} className="space-y-8">
+          
+          {/* SECTION 1: PROFILE PHOTO (NO URL INPUT!) */}
+          <div className={`p-6 md:p-8 rounded-3xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
+            <h3 className="font-heading text-lg font-bold text-gold-500 mb-2 flex items-center gap-2">
+              <Camera className="w-5 h-5" /> Profile Photo
+            </h3>
+            <p className="text-xs opacity-70 mb-6">Select a high quality photo to represent your profile across Geet Studio community.</p>
 
-                {/* Conversion Rate */}
-                <div className={`p-6 rounded-2xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-xs uppercase tracking-wider opacity-75">Lead Conversion Rate</span>
-                    <span className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-                      <TrendingUp className="w-4 h-4" />
-                    </span>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-heading font-bold text-emerald-400">
-                      {analytics.totalViews > 0 ? ((analytics.totalReveals / analytics.totalViews) * 100).toFixed(1) : 0}%
-                    </span>
-                  </div>
-                  <p className="text-[11px] opacity-60 mt-1">Percentage of viewers requesting contact details</p>
-                </div>
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <div className="w-32 h-32 rounded-2xl overflow-hidden border-2 border-gold-500 shadow-xl flex-shrink-0">
+                <img src={profile.profileImage} alt="Profile" className="w-full h-full object-cover" />
               </div>
 
-              {/* Recent Inquiries List */}
-              {analytics.recentInquiries?.length > 0 && (
-                <div className={`p-6 rounded-2xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
-                  <h3 className="font-heading text-lg font-bold mb-4 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gold-500" /> Recent Gig Leads & Inquiries
-                  </h3>
-                  <div className="divide-y divide-dark-700/40">
-                    {analytics.recentInquiries.map((inquiry, idx) => (
-                      <div key={idx} className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div>
-                          <p className="font-bold text-sm text-gold-500">{inquiry.name}</p>
-                          <p className="text-xs opacity-75 font-serif italic mb-1">"{inquiry.purpose}"</p>
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs opacity-60">
-                            <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-gold-500" /> {inquiry.email}</span>
-                            <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5 text-gold-500" /> {inquiry.phone}</span>
-                          </div>
-                        </div>
-                        <span className="text-[10px] opacity-60 self-start sm:self-auto">
-                          {new Date(inquiry.date).toLocaleDateString('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+              <div className="space-y-3 w-full sm:w-auto">
+                <label className="px-5 py-3 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 hover:bg-gold-400 transition-all cursor-pointer shadow-md">
+                  <Upload className="w-4 h-4" /> Upload Photo From Device
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, 'profile')}
+                    className="hidden"
+                  />
+                </label>
 
-        {/* Dashboard Form */}
-        <form onSubmit={handleSaveProfile} className="space-y-8">
-          {/* Profile Photo & Primary Info */}
-          <div className={`p-6 md:p-8 rounded-2xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200'}`}>
-            <h3 className="font-heading text-xl font-bold text-gold-500 mb-6 flex items-center gap-2">
-              <User className="w-5 h-5" /> Primary Information & Profile Picture
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGalleryPickerTarget('profile');
+                    setShowGalleryPicker(true);
+                  }}
+                  className="w-full px-5 py-3 border border-gold-500/40 text-gold-400 font-bold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 hover:bg-gold-500/10 transition-all cursor-pointer"
+                >
+                  <ImageIcon className="w-4 h-4" /> Select From Studio Gallery
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 2: BASIC INFORMATION */}
+          <div className={`p-6 md:p-8 rounded-3xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
+            <h3 className="font-heading text-lg font-bold text-gold-500 mb-6 flex items-center gap-2">
+              <User className="w-5 h-5" /> Basic Information
             </h3>
 
-            {/* Profile Picture Upload Box */}
-            <div className="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-xl border border-dark-700/60 bg-dark-800/40 mb-6">
-              <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-gold-500 shrink-0 shadow-lg group">
-                <img
-                  src={profile.profileImage}
-                  alt={profile.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-gold-400">
-                  <Camera className="w-6 h-6" />
-                </div>
-              </div>
-
-              <div className="flex-1 w-full space-y-2">
-                <label className="block text-xs uppercase font-semibold text-gold-500 tracking-wider">
-                  Profile Photo URL / Upload
-                </label>
-                <input
-                  type="text"
-                  value={profile.profileImage}
-                  onChange={(e) => setProfile({ ...profile, profileImage: e.target.value })}
-                  placeholder="Paste image URL (e.g. https://...)"
-                  className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
-                />
-                <p className="text-[11px] opacity-60">Upload or paste a high resolution portrait photo for your public lead card.</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
               <div>
-                <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Full Name (Major) *</label>
+                <label className="block opacity-80 uppercase font-semibold mb-2">Full Name *</label>
                 <input
                   type="text"
+                  required
                   value={profile.name}
                   onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                  className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
+                  placeholder="e.g. Aarav Sharma"
+                  className={`w-full p-3.5 rounded-xl border focus:outline-none focus:border-gold-500 ${
+                    isDark ? 'bg-dark-800 border-dark-700 text-warm-50' : 'bg-warm-50 border-warm-300'
+                  }`}
                 />
               </div>
 
               <div>
-                <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Category (Major) *</label>
+                <label className="block opacity-80 uppercase font-semibold mb-2">Category *</label>
                 <select
                   value={profile.category}
                   onChange={(e) => setProfile({ ...profile, category: e.target.value })}
-                  className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
+                  className={`w-full p-3.5 rounded-xl border focus:outline-none focus:border-gold-500 ${
+                    isDark ? 'bg-dark-800 border-dark-700 text-warm-50' : 'bg-warm-50 border-warm-300'
+                  }`}
                 >
-                  <option value="Artists">Artists</option>
-                  <option value="Dancers">Dancers</option>
-                  <option value="Anchors">Anchors</option>
-                  <option value="Singers">Singers</option>
-                  <option value="DJs">DJs</option>
-                  <option value="Musicians">Musicians</option>
-                  <option value="Event Planners">Event Planners</option>
-                  <option value="Sound Vendors">Sound Vendors</option>
-                  <option value="Light Vendors">Light Vendors</option>
-                  <option value="LED Vendors">LED Vendors</option>
-                  <option value="Decor Vendors">Decor Vendors</option>
-                  <option value="Event Managers">Event Managers</option>
-                  <option value="Other">Other</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Profession / Title (Major) *</label>
+                <label className="block opacity-80 uppercase font-semibold mb-2">Profession / Title *</label>
                 <input
                   type="text"
+                  required
                   value={profile.profession}
                   onChange={(e) => setProfile({ ...profile, profession: e.target.value })}
-                  className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
+                  placeholder="e.g. Bollywood & Hip Hop Choreographer"
+                  className={`w-full p-3.5 rounded-xl border focus:outline-none focus:border-gold-500 ${
+                    isDark ? 'bg-dark-800 border-dark-700 text-warm-50' : 'bg-warm-50 border-warm-300'
+                  }`}
                 />
               </div>
 
               <div>
-                <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Location (Major) *</label>
-                <input
-                  type="text"
-                  value={profile.location}
-                  onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                  className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
-                />
+                <label className="block opacity-80 uppercase font-semibold mb-2">Experience Level</label>
+                <select
+                  value={profile.experience}
+                  onChange={(e) => setProfile({ ...profile, experience: e.target.value })}
+                  className={`w-full p-3.5 rounded-xl border focus:outline-none focus:border-gold-500 ${
+                    isDark ? 'bg-dark-800 border-dark-700 text-warm-50' : 'bg-warm-50 border-warm-300'
+                  }`}
+                >
+                  <option value="1+ Year">1+ Year Experience</option>
+                  <option value="3+ Years">3+ Years Experience</option>
+                  <option value="5+ Years">5+ Years Experience</option>
+                  <option value="8+ Years">8+ Years Experience</option>
+                  <option value="10+ Years">10+ Years Experience</option>
+                </select>
               </div>
 
               <div>
-                <label className="block text-xs uppercase font-semibold opacity-80 mb-1">City *</label>
+                <label className="block opacity-80 uppercase font-semibold mb-2">City</label>
                 <input
                   type="text"
                   value={profile.city}
                   onChange={(e) => setProfile({ ...profile, city: e.target.value })}
                   placeholder="e.g. Indore"
-                  className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
+                  className={`w-full p-3.5 rounded-xl border focus:outline-none focus:border-gold-500 ${
+                    isDark ? 'bg-dark-800 border-dark-700 text-warm-50' : 'bg-warm-50 border-warm-300'
+                  }`}
                 />
               </div>
 
               <div>
-                <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Area *</label>
+                <label className="block opacity-80 uppercase font-semibold mb-2">Area / Locality</label>
                 <input
                   type="text"
                   value={profile.area}
                   onChange={(e) => setProfile({ ...profile, area: e.target.value })}
                   placeholder="e.g. Vijay Nagar"
-                  className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
+                  className={`w-full p-3.5 rounded-xl border focus:outline-none focus:border-gold-500 ${
+                    isDark ? 'bg-dark-800 border-dark-700 text-warm-50' : 'bg-warm-50 border-warm-300'
+                  }`}
                 />
               </div>
+            </div>
+          </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Bio (Major) *</label>
+          {/* SECTION 3: BIO & SERVICES */}
+          <div className={`p-6 md:p-8 rounded-3xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
+            <h3 className="font-heading text-lg font-bold text-gold-500 mb-6 flex items-center gap-2">
+              <Sparkles className="w-5 h-5" /> About & Offered Services
+            </h3>
+
+            <div className="space-y-6 text-xs">
+              <div>
+                <label className="block opacity-80 uppercase font-semibold mb-2">Bio / Professional Summary *</label>
                 <textarea
-                  rows={4}
+                  required
+                  rows="4"
                   value={profile.bio}
                   onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                  className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
+                  placeholder="Describe your background, achievements, dance styles, or event specializations..."
+                  className={`w-full p-3.5 rounded-xl border focus:outline-none focus:border-gold-500 ${
+                    isDark ? 'bg-dark-800 border-dark-700 text-warm-50' : 'bg-warm-50 border-warm-300'
+                  }`}
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Services Offered (Comma separated)</label>
+              <div>
+                <label className="block opacity-80 uppercase font-semibold mb-2">Offered Services (Comma Separated)</label>
                 <input
                   type="text"
                   value={profile.services}
                   onChange={(e) => setProfile({ ...profile, services: e.target.value })}
-                  className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
+                  placeholder="e.g. Sangeet Choreography, Solo Performance, Workshop Masterclass"
+                  className={`w-full p-3.5 rounded-xl border focus:outline-none focus:border-gold-500 ${
+                    isDark ? 'bg-dark-800 border-dark-700 text-warm-50' : 'bg-warm-50 border-warm-300'
+                  }`}
                 />
               </div>
             </div>
           </div>
 
-          {/* Work Showcase Section — Max 4 Photos & Max 1 Video */}
-          <div className={`p-6 md:p-8 rounded-2xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
-            <h3 className="font-heading text-xl font-bold text-gold-500 mb-2 flex items-center gap-2">
-              <Film className="w-5 h-5" /> Work Portfolio (Max 4 Photos, Max 1 Video)
-            </h3>
-            <p className="text-xs opacity-70 mb-6">Showcase your past performances, stage acts, or event work to prospective clients.</p>
-
-            {/* Work Photos (Max 4) */}
-            <div className="mb-8 space-y-4">
-              <div className="flex items-center justify-between">
-                <label className="text-xs uppercase font-semibold text-gold-500 tracking-wider flex items-center gap-1.5">
-                  <Image className="w-4 h-4" /> Work Photos ({profile.portfolioPhotos.length}/4)
-                </label>
-                {profile.portfolioPhotos.length < 4 && (
-                  <span className="text-[11px] opacity-60">You can add {4 - profile.portfolioPhotos.length} more photo(s)</span>
-                )}
+          {/* SECTION 4: PORTFOLIO PHOTOS (MULTIPLE PHOTOS) */}
+          <div className={`p-6 md:p-8 rounded-3xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <h3 className="font-heading text-lg font-bold text-gold-500 flex items-center gap-2">
+                  <Camera className="w-5 h-5" /> Portfolio Photos ({profile.portfolioPhotos.length})
+                </h3>
+                <p className="text-xs opacity-70">Add photos of your live performances, workshops, and choreography events.</p>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {profile.portfolioPhotos.map((photoUrl, idx) => (
-                  <div key={idx} className="relative h-40 rounded-xl overflow-hidden border border-dark-700 group shadow-md">
-                    <img src={photoUrl} alt={`Work ${idx + 1}`} className="w-full h-full object-cover" />
+              <div className="flex items-center gap-3">
+                <label className="px-4 py-2 bg-gold-500/10 border border-gold-500/40 text-gold-400 font-bold text-xs uppercase rounded-xl flex items-center gap-1.5 hover:bg-gold-500 hover:text-dark-950 transition-all cursor-pointer">
+                  <Upload className="w-3.5 h-3.5" /> Add Photo
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, 'portfolioPhoto')}
+                    className="hidden"
+                  />
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGalleryPickerTarget('portfolioPhoto');
+                    setShowGalleryPicker(true);
+                  }}
+                  className="px-4 py-2 border border-dark-600 text-xs font-bold uppercase rounded-xl hover:bg-dark-800 transition-all cursor-pointer"
+                >
+                  <ImageIcon className="w-3.5 h-3.5" /> From Studio Gallery
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {profile.portfolioPhotos.length === 0 ? (
+                <p className="col-span-full py-8 text-center opacity-60 text-xs">No portfolio photos added yet. Click above to add photos.</p>
+              ) : (
+                profile.portfolioPhotos.map((photo, idx) => (
+                  <div key={idx} className="relative group rounded-2xl overflow-hidden border border-dark-700 bg-dark-800 h-40">
+                    <img src={photo} alt={`Portfolio ${idx + 1}`} className="w-full h-full object-cover" />
                     <button
                       type="button"
                       onClick={() => handleRemovePhoto(idx)}
-                      className="absolute top-2 right-2 p-1.5 bg-red-600/80 hover:bg-red-600 text-white rounded-full transition-colors cursor-pointer shadow-lg"
-                      title="Remove Photo"
+                      className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
-                    <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 text-[10px] font-bold text-white uppercase">Photo {idx + 1}</span>
                   </div>
-                ))}
-
-                {profile.portfolioPhotos.length < 4 && (
-                  <div className="h-40 rounded-xl border-2 border-dashed border-dark-700 flex flex-col items-center justify-center p-3 text-center bg-dark-800/20">
-                    <Plus className="w-6 h-6 text-gold-500 mb-1" />
-                    <p className="text-[11px] font-semibold opacity-80">Add Photo URL</p>
-                  </div>
-                )}
-              </div>
-
-              {profile.portfolioPhotos.length < 4 && (
-                <div className="flex gap-2 pt-2">
-                  <input
-                    type="url"
-                    value={newPhotoInput}
-                    onChange={(e) => setNewPhotoInput(e.target.value)}
-                    placeholder="Paste image URL (https://...)"
-                    className={`flex-1 p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddPhoto}
-                    className="px-4 py-2.5 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-wider hover:bg-gold-400 transition-all rounded cursor-pointer"
-                  >
-                    Add Photo
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Work Video (Max 1) */}
-            <div className="space-y-4 pt-4 border-t border-dark-700/50">
-              <label className="text-xs uppercase font-semibold text-gold-500 tracking-wider flex items-center gap-1.5">
-                <Video className="w-4 h-4" /> Work Video Showcase (Max 1 Video)
-              </label>
-
-              {profile.portfolioVideo ? (
-                <div className="relative rounded-xl overflow-hidden border border-dark-700 bg-dark-800 p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold truncate text-gold-400">{profile.portfolioVideo}</span>
-                    <button
-                      type="button"
-                      onClick={handleRemoveVideo}
-                      className="px-2.5 py-1 bg-red-600/80 hover:bg-red-600 text-white rounded text-xs font-semibold cursor-pointer flex items-center gap-1"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" /> Remove Video
-                    </button>
-                  </div>
-                  <div className="aspect-video w-full rounded-lg overflow-hidden bg-black">
-                    {profile.portfolioVideo.includes('youtube.com') || profile.portfolioVideo.includes('youtu.be') ? (
-                      <iframe
-                        src={profile.portfolioVideo.replace('watch?v=', 'embed/')}
-                        title="Work Video Preview"
-                        className="w-full h-full"
-                        allowFullScreen
-                      />
-                    ) : (
-                      <video src={profile.portfolioVideo} controls className="w-full h-full object-cover" />
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <input
-                    type="url"
-                    value={profile.portfolioVideo || ''}
-                    onChange={(e) => setProfile({ ...profile, portfolioVideo: e.target.value })}
-                    placeholder="Paste YouTube or MP4 video URL (e.g. https://www.youtube.com/watch?v=...)"
-                    className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
-                  />
-                  <p className="text-[11px] opacity-60">Add a video showcasing your best live performance or event reel.</p>
-                </div>
+                ))
               )}
             </div>
           </div>
 
-          {/* Social Links (Instagram & YouTube) */}
-          <div className={`p-6 md:p-8 rounded-2xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
-            <h3 className="font-heading text-xl font-bold text-gold-500 mb-2 flex items-center gap-2">
-              <LinkIcon className="w-5 h-5" /> Social Handles (Minor - Instant Update)
+          {/* SECTION 5: PORTFOLIO VIDEOS (MULTIPLE VIDEOS) */}
+          <div className={`p-6 md:p-8 rounded-3xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
+            <h3 className="font-heading text-lg font-bold text-gold-500 mb-2 flex items-center gap-2">
+              <Film className="w-5 h-5" /> Portfolio Videos ({profile.portfolioVideos.length})
             </h3>
-            <p className="text-xs opacity-70 mb-6">Social link edits update live on your profile immediately without requiring admin review.</p>
+            <p className="text-xs opacity-70 mb-6">Add YouTube video URLs or studio video links showcasing your choreography.</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex gap-3 mb-6">
+              <input
+                type="url"
+                value={newVideoUrl}
+                onChange={(e) => setNewVideoUrl(e.target.value)}
+                placeholder="Paste YouTube or video URL (https://www.youtube.com/watch?v=...)"
+                className={`flex-1 p-3 text-xs rounded-xl border focus:outline-none focus:border-gold-500 ${
+                  isDark ? 'bg-dark-800 border-dark-700 text-warm-50' : 'bg-warm-50 border-warm-300'
+                }`}
+              />
+              <button
+                type="button"
+                onClick={handleAddVideoUrl}
+                className="px-5 py-3 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-gold-400 transition-all cursor-pointer flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" /> Add Video
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {profile.portfolioVideos.length === 0 ? (
+                <p className="col-span-full py-6 text-center opacity-60 text-xs">No video links added yet.</p>
+              ) : (
+                profile.portfolioVideos.map((vid, idx) => (
+                  <div key={idx} className="p-3 rounded-2xl border border-dark-700 bg-dark-800 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <Film className="w-5 h-5 text-gold-500 flex-shrink-0" />
+                      <p className="text-xs font-mono truncate opacity-90">{vid}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveVideo(idx)}
+                      className="p-1.5 text-red-400 hover:bg-red-500/10 rounded-lg cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* SECTION 6: CONTACT & SOCIAL LINKS */}
+          <div className={`p-6 md:p-8 rounded-3xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
+            <h3 className="font-heading text-lg font-bold text-gold-500 mb-6 flex items-center gap-2">
+              <Phone className="w-5 h-5" /> Contact Information & Socials
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
               <div>
-                <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Instagram URL</label>
+                <label className="block opacity-80 uppercase font-semibold mb-2">Phone Number *</label>
+                <input
+                  type="text"
+                  required
+                  value={profile.phone}
+                  onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                  placeholder="e.g. 8770409447"
+                  className={`w-full p-3.5 rounded-xl border focus:outline-none focus:border-gold-500 ${
+                    isDark ? 'bg-dark-800 border-dark-700 text-warm-50' : 'bg-warm-50 border-warm-300'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className="block opacity-80 uppercase font-semibold mb-2">Email Address *</label>
+                <input
+                  type="email"
+                  required
+                  value={profile.email}
+                  onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                  placeholder="e.g. artist@gmail.com"
+                  className={`w-full p-3.5 rounded-xl border focus:outline-none focus:border-gold-500 ${
+                    isDark ? 'bg-dark-800 border-dark-700 text-warm-50' : 'bg-warm-50 border-warm-300'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className="block opacity-80 uppercase font-semibold mb-2">Instagram Profile Link</label>
                 <input
                   type="url"
                   value={profile.instagram}
                   onChange={(e) => setProfile({ ...profile, instagram: e.target.value })}
-                  className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
+                  placeholder="https://instagram.com/your_handle"
+                  className={`w-full p-3.5 rounded-xl border focus:outline-none focus:border-gold-500 ${
+                    isDark ? 'bg-dark-800 border-dark-700 text-warm-50' : 'bg-warm-50 border-warm-300'
+                  }`}
                 />
               </div>
 
               <div>
-                <label className="block text-xs uppercase font-semibold opacity-80 mb-1">YouTube URL</label>
+                <label className="block opacity-80 uppercase font-semibold mb-2">YouTube Channel Link</label>
                 <input
                   type="url"
                   value={profile.youtube}
                   onChange={(e) => setProfile({ ...profile, youtube: e.target.value })}
-                  className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
+                  placeholder="https://youtube.com/c/your_channel"
+                  className={`w-full p-3.5 rounded-xl border focus:outline-none focus:border-gold-500 ${
+                    isDark ? 'bg-dark-800 border-dark-700 text-warm-50' : 'bg-warm-50 border-warm-300'
+                  }`}
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end">
+          {/* SUBMIT BUTTON */}
+          <div className="pt-4 flex justify-end">
             <button
               type="submit"
-              className="px-8 py-4 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-[0.2em] hover:bg-gold-400 transition-all flex items-center gap-2 cursor-pointer shadow-xl"
+              disabled={saving}
+              className="w-full md:w-auto px-10 py-4 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-gold-400 transition-all shadow-xl cursor-pointer flex items-center justify-center gap-2"
             >
-              <Save className="w-4 h-4" /> Save & Submit Updates
+              <Save className="w-4 h-4" />
+              {saving ? 'Saving to MongoDB...' : 'Save Profile Changes'}
             </button>
           </div>
+
         </form>
+
       </div>
+
+      {/* STUDIO GALLERY PICKER MODAL */}
+      {showGalleryPicker && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+          <div className={`max-w-3xl w-full max-h-[85vh] flex flex-col p-6 rounded-3xl border shadow-2xl ${
+            isDark ? 'bg-dark-900 border-dark-700 text-warm-50' : 'bg-white border-warm-200 text-dark-950'
+          }`}>
+            <div className="flex items-center justify-between mb-4 border-b border-dark-700/40 pb-4">
+              <div>
+                <h3 className="font-heading text-lg font-bold text-gold-500">Select From Studio Gallery</h3>
+                <p className="text-xs opacity-70">Pick a media asset from Geet Studio's official gallery collection.</p>
+              </div>
+              <button
+                onClick={() => setShowGalleryPicker(false)}
+                className="p-2 hover:bg-dark-800 rounded-xl cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-2">
+              {studioGallery.length === 0 ? (
+                <p className="col-span-full py-12 text-center opacity-60 text-xs">No gallery media uploaded yet. You can upload media directly using the file picker.</p>
+              ) : (
+                studioGallery.map((item) => (
+                  <button
+                    key={item._id}
+                    type="button"
+                    onClick={() => handleSelectGalleryItem(item.mediaUrl)}
+                    className="relative group rounded-2xl overflow-hidden border border-dark-700 bg-dark-800 h-36 focus:outline-none focus:ring-2 focus:ring-gold-500 cursor-pointer"
+                  >
+                    <img src={item.mediaUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    <div className="absolute inset-0 bg-dark-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <span className="px-3 py-1 bg-gold-500 text-dark-950 font-bold text-[10px] uppercase rounded">Select</span>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

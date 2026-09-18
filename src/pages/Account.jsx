@@ -2,32 +2,26 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Calendar, CreditCard, LogOut, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { User, Calendar, LogOut, CheckCircle2, Clock, MessageSquare } from 'lucide-react';
 
-const demoEnrollments = [
+const demoEnrollmentRequests = [
   {
-    enrollmentId: 'GS-2026-X8921',
+    enrollmentId: 'ENR-REQ-8921',
     className: 'Bollywood Advanced Choreography',
     batch: 'Mon/Wed/Fri (6:00 PM - 7:00 PM)',
-    startDate: '25 August 2026',
-    endDate: '25 September 2026',
+    requestDate: '25 August 2026',
     location: 'Geet Studio, Indore',
-    amountPaid: 3500,
-    paymentStatus: 'SUCCESS',
-    enrollmentStatus: 'CONFIRMED',
-    whatsAppGroupLink: 'https://chat.whatsapp.com/demo',
+    requestStatus: 'CONFIRMED',
+    whatsAppGroupLink: 'https://chat.whatsapp.com/GeetStudioOfficialGroup',
   },
   {
-    enrollmentId: 'GS-2026-Y4102',
+    enrollmentId: 'ENR-REQ-4102',
     className: 'Contemporary Expression Workshop',
     batch: 'Sat/Sun (4:00 PM - 6:00 PM)',
-    startDate: '30 August 2026',
-    endDate: '01 September 2026',
+    requestDate: '30 August 2026',
     location: 'Geet Studio, Indore',
-    amountPaid: 1500,
-    paymentStatus: 'SUCCESS',
-    enrollmentStatus: 'CONFIRMED',
-    whatsAppGroupLink: 'https://chat.whatsapp.com/demo',
+    requestStatus: 'CONTACTED',
+    whatsAppGroupLink: 'https://chat.whatsapp.com/GeetStudioOfficialGroup',
   },
 ];
 
@@ -41,6 +35,19 @@ export default function Account() {
     navigate('/login');
     return null;
   }
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'CONFIRMED':
+        return 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
+      case 'CONTACTED':
+        return 'bg-blue-500/10 border-blue-500/30 text-blue-400';
+      case 'NEW':
+        return 'bg-amber-500/10 border-amber-500/30 text-amber-400';
+      default:
+        return 'bg-gray-500/10 border-gray-500/30 text-gray-400';
+    }
+  };
 
   return (
     <div className={`pt-28 pb-24 min-h-screen transition-colors ${isDark ? 'bg-dark-950 text-warm-50' : 'bg-warm-50 text-dark-950'}`}>
@@ -85,18 +92,7 @@ export default function Account() {
                 : 'opacity-70 hover:opacity-100'
             }`}
           >
-            <Calendar className="w-4 h-4" /> My Enrollments ({demoEnrollments.length})
-          </button>
-
-          <button
-            onClick={() => setActiveTab('payments')}
-            className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
-              activeTab === 'payments'
-                ? 'bg-gold-500 text-dark-950 shadow-md'
-                : 'opacity-70 hover:opacity-100'
-            }`}
-          >
-            <CreditCard className="w-4 h-4" /> Payment History
+            <Calendar className="w-4 h-4" /> My Enrollment Requests ({demoEnrollmentRequests.length})
           </button>
 
           <button
@@ -114,7 +110,7 @@ export default function Account() {
         {/* Tab Contents */}
         {activeTab === 'enrollments' && (
           <div className="space-y-6">
-            {demoEnrollments.map((item) => (
+            {demoEnrollmentRequests.map((item) => (
               <div
                 key={item.enrollmentId}
                 className={`p-6 rounded-2xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}
@@ -127,27 +123,23 @@ export default function Account() {
                     <h3 className="font-heading text-xl font-bold">{item.className}</h3>
                   </div>
 
-                  <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 self-start md:self-auto">
-                    <CheckCircle2 className="w-4 h-4" /> {item.enrollmentStatus}
+                  <span className={`px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 self-start md:self-auto ${getStatusBadge(item.requestStatus)}`}>
+                    <CheckCircle2 className="w-4 h-4" /> {item.requestStatus}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs mb-6 opacity-85">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs mb-6 opacity-85">
                   <div>
-                    <p className="opacity-60 uppercase font-semibold">Batch Timing</p>
+                    <p className="opacity-60 uppercase font-semibold">Batch / Preferred Timing</p>
                     <p className="font-medium text-gold-400">{item.batch}</p>
                   </div>
                   <div>
-                    <p className="opacity-60 uppercase font-semibold">Course Schedule</p>
-                    <p className="font-medium">{item.startDate} to {item.endDate}</p>
+                    <p className="opacity-60 uppercase font-semibold">Request Date</p>
+                    <p className="font-medium">{item.requestDate}</p>
                   </div>
                   <div>
                     <p className="opacity-60 uppercase font-semibold">Venue Location</p>
                     <p className="font-medium">{item.location}</p>
-                  </div>
-                  <div>
-                    <p className="opacity-60 uppercase font-semibold">Fee Paid</p>
-                    <p className="font-medium text-gold-500 text-sm">₹{item.amountPaid}</p>
                   </div>
                 </div>
 
@@ -170,36 +162,6 @@ export default function Account() {
                 </div>
               </div>
             ))}
-          </div>
-        )}
-
-        {activeTab === 'payments' && (
-          <div className={`p-6 rounded-2xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
-            <h3 className="font-heading text-xl font-bold mb-4">Payment Transactions</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-dark-700 text-gold-500 uppercase tracking-wider">
-                    <th className="py-3 px-4">Enrollment ID</th>
-                    <th className="py-3 px-4">Item</th>
-                    <th className="py-3 px-4">Amount</th>
-                    <th className="py-3 px-4">Provider</th>
-                    <th className="py-3 px-4">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {demoEnrollments.map((tx) => (
-                    <tr key={tx.enrollmentId} className="border-b border-dark-700/30">
-                      <td className="py-3.5 px-4 font-mono">{tx.enrollmentId}</td>
-                      <td className="py-3.5 px-4 font-medium">{tx.className}</td>
-                      <td className="py-3.5 px-4 text-gold-500 font-bold">₹{tx.amountPaid}</td>
-                      <td className="py-3.5 px-4">RAZORPAY</td>
-                      <td className="py-3.5 px-4 text-emerald-400 font-bold">{tx.paymentStatus}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </div>
         )}
 

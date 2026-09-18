@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 export const connectDB = async () => {
   const uri = process.env.MONGODB_URI;
 
-  if (!uri || uri.includes('username:password')) {
+  if (!uri || uri.includes('username:password') || uri.includes('<db_username>')) {
     console.warn('⚠️ MONGODB_URI is not defined or is placeholder. Server operating with resilient in-memory mode.');
     mongoose.set('bufferCommands', false);
     return false;

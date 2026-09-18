@@ -1,101 +1,18 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Search, Filter, ShieldCheck, MapPin, ArrowRight, UserPlus, Sparkles, ChevronDown } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { api } from '../utils/api';
+import { normalizeCommunityRecord } from '../utils/contentAdapters';
 
 const categoriesList = [
-  'All', 'Artists', 'Dancers', 'Anchors', 'Singers', 'DJs', 'Musicians',
-  'Event Planners', 'Sound Vendors', 'Light Vendors', 'LED Vendors',
-  'Decor Vendors', 'Event Managers', 'Other'
+  'All', 'Artists', 'Dancers', 'Singers', 'Musicians', 'DJs', 'Anchors',
+  'Event Planners', 'Event Managers', 'Sound', 'Lighting', 'LED',
+  'Decor', 'Other'
 ];
 
-const seedLeads = [
-  {
-    id: 'lead-1',
-    name: 'Aarav Sharma',
-    category: 'Dancers',
-    profession: 'Bollywood & Freestyle Choreographer',
-    location: 'Indore',
-    city: 'Indore',
-    area: 'Vijay Nagar',
-    bio: 'Professional dancer and instructor with 6+ years of experience leading workshops and corporate events across MP.',
-    services: ['Sangeet Choreography', 'Solo Acts', 'Workshops', 'Judge'],
-    experience: '6+ Years',
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&q=80',
-    instagram: 'https://instagram.com',
-  },
-  {
-    id: 'lead-2',
-    name: 'DJ Rohan Malhotra',
-    category: 'DJs',
-    profession: 'EDM, Commercial & Bollywood DJ',
-    location: 'Indore',
-    city: 'Indore',
-    area: 'Sapna Sangeeta',
-    bio: 'High energy DJ specializing in club nights, wedding sangeets, and large festival stages.',
-    services: ['Club DJing', 'Wedding Sangeet', 'Sound Setup', 'Private Parties'],
-    experience: '8+ Years',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80',
-    instagram: 'https://instagram.com',
-  },
-  {
-    id: 'lead-3',
-    name: 'Ananya Verma',
-    category: 'Anchors',
-    profession: 'Celebrity Host & Event Emcee',
-    location: 'Indore',
-    city: 'Indore',
-    area: 'Palasia',
-    bio: 'Fluent in Hindi & English with 200+ hosted live corporate events, award shows, and grand sangeets.',
-    services: ['Corporate Hosting', 'Sangeet Anchor', 'Award Shows', 'Brand Launches'],
-    experience: '5+ Years',
-    image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&q=80',
-    instagram: 'https://instagram.com',
-  },
-  {
-    id: 'lead-4',
-    name: 'Vikram Audio & Sound',
-    category: 'Sound Vendors',
-    profession: 'Concert Line Array & Stage Sound',
-    location: 'Bhopal',
-    city: 'Bhopal',
-    area: 'New Market',
-    bio: 'Complete sound rental equipment, JBL/RCF line arrays, digital mixers, and professional sound engineers.',
-    services: ['Concert Sound', 'Stage Rigging', 'Wireless Mics', 'DJ Gear Rental'],
-    experience: '10+ Years',
-    image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&q=80',
-    instagram: 'https://instagram.com',
-  },
-  {
-    id: 'lead-5',
-    name: 'Kavya Western Vocals',
-    category: 'Singers',
-    profession: 'Live Acoustic & Fusion Singer',
-    location: 'Indore',
-    city: 'Indore',
-    area: 'Vijay Nagar',
-    bio: 'Soulful acoustic vocalist performing classic Bollywood retro, Sufi, and pop fusion.',
-    services: ['Live Acoustic Set', 'Sufi Night', 'Cocktail Singer', 'Stage Performance'],
-    experience: '4+ Years',
-    image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80',
-    instagram: 'https://instagram.com',
-  },
-  {
-    id: 'lead-6',
-    name: 'Indore Light Crafters',
-    category: 'Light Vendors',
-    profession: 'Intelligent Stage & Ambience Lighting',
-    location: 'Indore',
-    city: 'Indore',
-    area: 'MR 10',
-    bio: 'Moving heads, sharpies, ambient uplighting, trussing, and DMX light programming for events.',
-    services: ['Intelligent Lighting', 'Truss Setup', 'Architectural Uplighting', 'Cold Pyro'],
-    experience: '7+ Years',
-    image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&q=80',
-    instagram: 'https://instagram.com',
-  },
-];
+
 
 export default function CommunityPage() {
   const { isDark } = useTheme();
@@ -103,20 +20,33 @@ export default function CommunityPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCity, setSelectedCity] = useState('All');
   const [selectedArea, setSelectedArea] = useState('All');
+  const [communityRecords, setCommunityRecords] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.get('/api/community')
+      .then((res) => {
+        if (!cancelled && res?.success && Array.isArray(res.data)) {
+          setCommunityRecords(res.data.map(normalizeCommunityRecord));
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   // Compute unique cities from all leads
   const cities = useMemo(() => {
-    const allCities = [...new Set(seedLeads.map((l) => l.city).filter(Boolean))];
+    const allCities = [...new Set(communityRecords.map((l) => l.city).filter(Boolean))];
     return ['All', ...allCities.sort()];
-  }, []);
+  }, [communityRecords]);
 
   // Compute areas based on selected city
   const areas = useMemo(() => {
     if (selectedCity === 'All') return ['All'];
-    const cityLeads = seedLeads.filter((l) => l.city === selectedCity);
+    const cityLeads = communityRecords.filter((l) => l.city === selectedCity);
     const uniqueAreas = [...new Set(cityLeads.map((l) => l.area).filter(Boolean))];
     return ['All', ...uniqueAreas.sort()];
-  }, [selectedCity]);
+  }, [selectedCity, communityRecords]);
 
   // Reset area when city changes
   const handleCityChange = (city) => {
@@ -124,7 +54,7 @@ export default function CommunityPage() {
     setSelectedArea('All');
   };
 
-  const filteredLeads = seedLeads.filter((lead) => {
+  const filteredLeads = communityRecords.filter((lead) => {
     const matchesCat = selectedCat === 'All' || lead.category === selectedCat;
     const matchesCity = selectedCity === 'All' || lead.city === selectedCity;
     const matchesArea = selectedArea === 'All' || lead.area === selectedArea;
@@ -138,32 +68,53 @@ export default function CommunityPage() {
   return (
     <div className={`pt-28 pb-24 min-h-screen transition-colors ${isDark ? 'bg-dark-950 text-warm-50' : 'bg-warm-50 text-dark-950'}`}>
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        {/* Banner */}
+        {/* Banner Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-          <div>
+          <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-gold-500/40 bg-gold-500/10 text-gold-500 text-xs font-semibold uppercase tracking-wider mb-4">
               <Sparkles className="w-3.5 h-3.5" />
-              Independent Business Area • Artist & Vendor Directory
+              INDEPENDENT DOMAIN · OPPORTUNITIES PLATFORM
             </div>
-            <h1 className="font-heading text-4xl md:text-6xl font-bold tracking-tight">
+            <h1 className="font-heading text-4xl md:text-6xl font-bold tracking-tight mb-3">
               THE GEET <span className="text-gold-500 font-light italic">COMMUNITY</span>
             </h1>
-            <p className="font-editorial text-xl italic opacity-85 mt-2">
-              Connecting talented artists, creators, vendors, and event leads with direct gig opportunities.
+            <p className="font-heading text-xl md:text-2xl font-bold text-gold-500 mb-4">
+              Where Talent Meets Opportunity.
+            </p>
+            <p className="text-base md:text-lg opacity-85 leading-relaxed">
+              Artists, creators, performers, and event professionals connected through collaboration, discovery, and real opportunities.
             </p>
           </div>
 
-          <Link
-            to="/lead/dashboard"
-            className="inline-flex items-center gap-2 px-6 py-3.5 bg-gold-500 text-dark-950 text-xs font-bold uppercase tracking-widest hover:bg-gold-400 transition-all shadow-lg shrink-0"
-          >
-            <UserPlus className="w-4 h-4" />
-            Join as a Community Lead
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+            <a
+              href="#explore-leads"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gold-500 text-dark-950 text-xs font-bold uppercase tracking-widest hover:bg-gold-400 transition-all shadow-lg"
+            >
+              EXPLORE THE COMMUNITY →
+            </a>
+            <Link
+              to="/register"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-gold-500 text-gold-500 text-xs font-bold uppercase tracking-widest hover:bg-gold-500/10 transition-all"
+            >
+              <UserPlus className="w-4 h-4" />
+              Join the Community
+            </Link>
+          </div>
         </div>
 
+        {/* Philosophy Statement Banner */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className={`p-8 md:p-10 rounded-2xl border mb-12 ${isDark ? 'bg-dark-900 border-gold-500/30' : 'bg-white border-warm-300 shadow-lg'}`}>
+          <h3 className="font-heading text-xl md:text-2xl font-bold text-gold-500 mb-4">
+            Talent shouldn’t have to know the right person to get the right opportunity.
+          </h3>
+          <p className={`text-base leading-relaxed max-w-4xl ${isDark ? 'text-dark-200' : 'opacity-85'}`}>
+            The Geet Community is built to make discovery easier. Find people, discover talent, build teams, collaborate on projects, and connect opportunities with the people who can bring them to life.
+          </p>
+        </motion.div>
+
         {/* Search & Filter Bar */}
-        <div className={`p-6 rounded-2xl border mb-10 ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
+        <div id="explore-leads" className={`p-6 rounded-2xl border mb-10 ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
           <div className="flex flex-col lg:flex-row items-center gap-4 mb-6">
             <div className="relative flex-1 w-full">
               <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gold-500" />
@@ -307,9 +258,11 @@ export default function CommunityPage() {
                 </div>
 
                 <div className="p-6 pt-0 border-t border-dark-700/30 flex items-center justify-between mt-auto">
-                  <div className="flex items-center gap-1 text-xs text-emerald-400 font-semibold">
-                    <ShieldCheck className="w-4 h-4 text-gold-500" />
-                    <span>Verified</span>
+                  <div className="flex flex-col">
+                    <span className="flex items-center gap-1 text-[11px] font-bold text-gold-500 uppercase tracking-wider">
+                      <ShieldCheck className="w-3.5 h-3.5" /> VERIFIED PROFILE
+                    </span>
+                    <span className="text-[10px] opacity-75 font-semibold uppercase">{lead.experience ? `${lead.experience} EXPERIENCE` : '6+ YEARS EXPERIENCE'}</span>
                   </div>
 
                   <Link

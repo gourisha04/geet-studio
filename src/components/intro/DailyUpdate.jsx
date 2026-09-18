@@ -29,7 +29,7 @@ export default function DailyUpdate({ onComplete }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (onComplete) onComplete();
-    }, 5000);
+    }, 3000);
     return () => clearTimeout(timer);
   }, [onComplete]);
 

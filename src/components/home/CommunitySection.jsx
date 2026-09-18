@@ -1,8 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Users, ArrowRight, Star, ShieldCheck, Zap } from 'lucide-react';
+import { Users, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { api } from '../../utils/api';
+import { normalizeCommunityRecord } from '../../utils/contentAdapters';
 
 const communityCategories = [
   'Artists', 'Dancers', 'Anchors', 'Singers', 'DJs', 'Musicians',
@@ -10,49 +12,24 @@ const communityCategories = [
   'Decor Vendors', 'Event Managers', 'Other'
 ];
 
-const featuredLeads = [
-  {
-    id: 'lead-1',
-    name: 'Aarav Sharma',
-    category: 'Dancers',
-    profession: 'Bollywood & Choreographer',
-    location: 'Indore',
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80',
-    experience: '6+ Years',
-  },
-  {
-    id: 'lead-2',
-    name: 'Rohan Malhotra',
-    category: 'DJs',
-    profession: 'EDM & Bollywood DJ',
-    location: 'Indore',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80',
-    experience: '8+ Years',
-  },
-  {
-    id: 'lead-3',
-    name: 'Ananya Verma',
-    category: 'Anchors',
-    profession: 'Celebrity Host & Emcee',
-    location: 'Indore',
-    image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&q=80',
-    experience: '5+ Years',
-  },
-  {
-    id: 'lead-4',
-    name: 'Vikram & Sound Crew',
-    category: 'Sound Vendors',
-    profession: 'Line Array & Concert Audio',
-    location: 'Indore',
-    image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80',
-    experience: '10+ Years',
-  },
-];
-
 export default function CommunitySection({ onReachEnd }) {
   const { isDark } = useTheme();
   const bottomRef = useRef(null);
   const isBottomInView = useInView(bottomRef, { margin: '0px 0px -100px 0px', once: false });
+  const [featuredLeads, setFeaturedLeads] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.get('/api/community')
+      .then((res) => {
+        if (!cancelled && res?.success && Array.isArray(res.data)) {
+          const normalized = res.data.map(normalizeCommunityRecord);
+          setFeaturedLeads(normalized.slice(0, 4));
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (isBottomInView && onReachEnd) {
@@ -135,50 +112,59 @@ export default function CommunitySection({ onReachEnd }) {
         </motion.div>
 
         {/* Featured Profiles Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {featuredLeads.map((lead, index) => (
-            <motion.div
-              key={lead.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-              className={`group rounded-xl overflow-hidden border transition-all duration-500 hover:-translate-y-2 ${
-                isDark
-                  ? 'bg-dark-900 border-dark-700 hover:border-gold-500/60 shadow-lg'
-                  : 'bg-white border-warm-200 hover:border-gold-500/60 shadow-md'
-              }`}
-            >
-              <div className="relative h-60 overflow-hidden">
-                <img
-                  src={lead.image}
-                  alt={lead.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                <span className="absolute top-3 left-3 px-2.5 py-1 text-[10px] font-bold bg-gold-500 text-dark-950 rounded uppercase tracking-wider">
-                  {lead.category}
-                </span>
-                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
-                  <div>
-                    <h4 className="font-heading text-lg font-bold">{lead.name}</h4>
-                    <p className="text-xs text-gold-400 font-medium">{lead.profession}</p>
+        {featuredLeads.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            {featuredLeads.map((lead, index) => (
+              <motion.div
+                key={lead.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
+                className={`group rounded-xl overflow-hidden border flex flex-col justify-between transition-all duration-500 hover:-translate-y-2 ${
+                  isDark
+                    ? 'bg-dark-900 border-dark-700 hover:border-gold-500/60 shadow-lg'
+                    : 'bg-white border-warm-200 hover:border-gold-500/60 shadow-md'
+                }`}
+              >
+                <div>
+                  <div className="relative h-60 overflow-hidden">
+                    <img
+                      src={lead.image}
+                      alt={lead.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <span className="absolute top-3 left-3 px-2.5 py-1 text-[10px] font-bold bg-gold-500 text-dark-950 rounded uppercase tracking-wider">
+                      {lead.category}
+                    </span>
+                    <div className="absolute bottom-3 left-3 right-3 text-white">
+                      <h4 className="font-heading text-lg font-bold">{lead.name}</h4>
+                      <p className="text-xs text-gold-400 font-medium">{lead.profession}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs opacity-75">
-                  <ShieldCheck className="w-4 h-4 text-gold-500" />
-                  <span>Verified Lead</span>
+                <div className="p-4 border-t border-dark-700/30 flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-gold-500 uppercase tracking-wider">
+                      <ShieldCheck className="w-3.5 h-3.5" /> VERIFIED
+                    </span>
+                    <span className="text-[10px] opacity-75 font-semibold uppercase">
+                      {lead.experience ? `${lead.experience}` : '5+ YEARS'}
+                    </span>
+                  </div>
+                  <Link
+                    to={`/community/${lead.id}`}
+                    className="text-xs font-bold text-gold-500 hover:text-gold-400 uppercase tracking-wider flex items-center gap-1"
+                  >
+                    View Profile →
+                  </Link>
                 </div>
-                <span className="text-xs font-semibold text-gold-500">
-                  {lead.experience}
-                </span>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
         {/* Big Impact CTAs */}
         <motion.div
@@ -200,7 +186,7 @@ export default function CommunitySection({ onReachEnd }) {
             to="/register"
             className="w-full sm:w-auto px-8 py-4 border border-gold-500 text-gold-500 text-xs font-bold uppercase tracking-[0.2em] hover:bg-gold-500/10 transition-all flex items-center justify-center gap-2"
           >
-            Join as a Community Lead
+            Join the Community
           </Link>
         </motion.div>
         <div ref={bottomRef} className="h-1 w-full" />

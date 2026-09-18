@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const communityLeadSchema = new mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true, index: true },
+    userId: { type: mongoose.Schema.Types.Mixed, ref: 'User', required: false, index: true },
     name: { type: String, required: true },
     profileImage: {
       url: String,
@@ -36,7 +36,7 @@ const communityLeadSchema = new mongoose.Schema(
     portfolioVideos: [{ url: String, publicId: String }],
     status: {
       type: String,
-      enum: ['PENDING', 'APPROVED', 'REJECTED'],
+      enum: ['PENDING', 'APPROVED', 'REJECTED', 'SUSPENDED'],
       default: 'PENDING',
       index: true,
     },
@@ -48,4 +48,18 @@ const communityLeadSchema = new mongoose.Schema(
 
 communityLeadSchema.index({ category: 1, status: 1 });
 
-export default mongoose.models.CommunityLead || mongoose.model('CommunityLead', communityLeadSchema);
+const CommunityLeadModel = mongoose.models.CommunityLead || mongoose.model('CommunityLead', communityLeadSchema);
+
+// Auto-clean legacy duplicate userId_1 index if it exists without sparse option
+if (mongoose.connection) {
+  mongoose.connection.once('open', async () => {
+    try {
+      await CommunityLeadModel.collection.dropIndex('userId_1');
+      console.log('Cleaned legacy userId_1 index on CommunityLead collection.');
+    } catch (e) {
+      // Index might not exist or already cleaned
+    }
+  });
+}
+
+export default CommunityLeadModel;

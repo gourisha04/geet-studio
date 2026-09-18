@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles, Music, Flame, Trophy, Send } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useState } from 'react';
+import { useEffect } from 'react';
+import { api } from '../utils/api';
 
 const servicesData = [
   {
@@ -64,11 +66,39 @@ const servicesData = [
 
 export default function ServicesPage() {
   const { isDark } = useTheme();
+  const [services, setServices] = useState([]);
   const [quoteModal, setQuoteModal] = useState(false);
   const [quoteSent, setQuoteSent] = useState(false);
   const [quoteForm, setQuoteForm] = useState({
     name: '', email: '', phone: '', eventType: 'Wedding Choreography', eventDate: '', guests: '', budget: '', message: ''
   });
+
+  useEffect(() => {
+    let cancelled = false;
+    api.get('/api/services')
+      .then((res) => {
+        if (!cancelled && res?.success && Array.isArray(res.data)) {
+          setServices(res.data.map((service) => ({
+            ...service,
+            id: service._id,
+            icon: service.slug?.startsWith('music') || service.title?.toLowerCase().includes('music')
+              ? Music
+              : service.slug?.startsWith('fitness') || service.title?.toLowerCase().includes('fitness')
+                ? Flame
+                : service.slug?.startsWith('events') || service.title?.toLowerCase().includes('event')
+                  ? Trophy
+                  : Sparkles,
+            category: service.category || 'Studio Service',
+            image: service.media?.url || 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800&q=80',
+            offerings: (service.offerings || []).map((offering) => ({ ...offering, desc: offering.description || offering.desc || '' })),
+          })));
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const displayedServices = services;
 
   const handleQuoteSubmit = (e) => {
     e.preventDefault();
@@ -93,7 +123,7 @@ export default function ServicesPage() {
 
         {/* Services List */}
         <div className="space-y-16">
-          {servicesData.map((service, index) => {
+          {displayedServices.map((service, index) => {
             const Icon = service.icon;
             const isEven = index % 2 === 0;
             return (

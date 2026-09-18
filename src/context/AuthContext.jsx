@@ -24,12 +24,18 @@ export function AuthProvider({ children }) {
         const data = await api.get('/api/auth/me');
         if (!cancelled && data?.success && data?.user) {
           setUser(data.user);
+        } else if (!cancelled) {
+          setUser(null);
         }
       } catch (err) {
-        // If API explicitly responds with 401 or status error, user is unauthenticated
+        // 401 Unauthorized is expected for unauthenticated public visitors
         if (!cancelled) {
           setUser(null);
           localStorage.removeItem('geet_user');
+          // Only log genuine server/network errors (500, status 0, etc.)
+          if (err.status && err.status !== 401) {
+            console.warn('Session check note:', err.status, err.message);
+          }
         }
       } finally {
         if (!cancelled) setLoading(false);

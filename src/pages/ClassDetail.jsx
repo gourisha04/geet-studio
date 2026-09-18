@@ -1,32 +1,60 @@
-import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, MapPin, Award, CheckCircle, Send, CheckCircle2, X } from 'lucide-react';
-import { getClassById } from '../data/classes';
 import Button from '../components/ui/Button';
 import PageTransition from '../components/ui/PageTransition';
 import { useTheme } from '../context/ThemeContext';
+import { api } from '../utils/api';
+import { normalizeClassRecord } from '../utils/contentAdapters';
 
 export default function ClassDetail() {
   const { id } = useParams();
-  const classData = getClassById(id);
+  const [classData, setClassData] = useState(null);
   const { isDark } = useTheme();
+
+  useEffect(() => {
+    let cancelled = false;
+    api.get(`/api/classes/${id}`)
+      .then((res) => {
+        if (!cancelled && res?.success && res.data) {
+          setClassData(normalizeClassRecord(res.data));
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [id]);
 
   const [showRegModal, setShowRegModal] = useState(false);
   const [regSubmitted, setRegSubmitted] = useState(false);
   const [regLoading, setRegLoading] = useState(false);
-  const [regForm, setRegForm] = useState({ name: '', email: '', phone: '', age: '', batch: '' });
+  const [errorMsg, setErrorMsg] = useState('');
+  const [regForm, setRegForm] = useState({ name: '', email: '', phone: '', age: '', batch: '', message: '' });
 
   const handleRegSubmit = async (e) => {
     e.preventDefault();
     setRegLoading(true);
+    setErrorMsg('');
+
     try {
-      await fetch('/api/enrollments/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ classId: id, ...regForm }),
-      }).catch(() => {});
+      const data = await api.post('/api/enrollments', {
+        classId: id,
+        className: classData?.name,
+        studentName: regForm.name,
+        email: regForm.email,
+        phone: regForm.phone,
+        age: regForm.age,
+        batch: regForm.batch,
+        message: regForm.message,
+      });
+
+      if (!data?.success) {
+        throw new Error(data?.message || 'Unable to submit enrollment request.');
+      }
+
       setRegSubmitted(true);
+    } catch (err) {
+      setErrorMsg(err.message || 'Unable to submit enrollment request. Please try again.');
     } finally {
       setRegLoading(false);
     }
@@ -44,7 +72,6 @@ export default function ClassDetail() {
       </PageTransition>
     );
   }
-
 
   return (
     <PageTransition>
@@ -144,7 +171,7 @@ export default function ClassDetail() {
                 className="w-full py-3.5 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-widest hover:bg-gold-400 transition-all cursor-pointer shadow-lg flex items-center justify-center gap-2"
               >
                 <Send className="w-4 h-4" />
-                Register Interest
+                Join Class
               </button>
               <p className="text-xs text-dark-300 text-center mt-3">Our team will contact you with details</p>
             </motion.div>
@@ -168,11 +195,11 @@ export default function ClassDetail() {
             {regSubmitted ? (
               <div className="text-center py-8">
                 <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-                <h3 className="font-heading text-2xl font-bold mb-2">Registration Submitted!</h3>
+                <h3 className="font-heading text-2xl font-bold mb-2">Enrollment Request Received!</h3>
                 <p className="text-sm opacity-80 mb-2">
-                  Your interest in <strong className="text-gold-500">{classData.name}</strong> has been registered successfully.
+                  Your request to join <strong className="text-gold-500">{classData.name}</strong> has been saved.
                 </p>
-                <p className="text-sm opacity-70 mb-6">Our team will contact you shortly with class details, schedule, and fees.</p>
+                <p className="text-sm opacity-70 mb-6">Our studio team will contact you shortly via phone / WhatsApp.</p>
                 <button
                   onClick={() => { setRegSubmitted(false); setShowRegModal(false); }}
                   className="px-6 py-2.5 bg-gold-500 text-dark-950 text-xs font-bold uppercase tracking-widest cursor-pointer"
@@ -183,9 +210,15 @@ export default function ClassDetail() {
             ) : (
               <form onSubmit={handleRegSubmit} className="space-y-4">
                 <div>
-                  <p className="text-xs uppercase text-gold-500 font-semibold tracking-wider">Register Interest</p>
+                  <p className="text-xs uppercase text-gold-500 font-semibold tracking-wider">Join Class Request</p>
                   <h3 className="font-heading text-2xl font-bold">{classData.name}</h3>
                 </div>
+
+                {errorMsg && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/40 text-red-400 text-xs rounded">
+                    {errorMsg}
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Full Name *</label>
@@ -203,8 +236,8 @@ export default function ClassDetail() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Age *</label>
-                    <input type="number" required value={regForm.age} onChange={(e) => setRegForm({ ...regForm, age: e.target.value })} placeholder="25" className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`} />
+                    <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Age (Optional)</label>
+                    <input type="number" value={regForm.age} onChange={(e) => setRegForm({ ...regForm, age: e.target.value })} placeholder="25" className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`} />
                   </div>
                   <div>
                     <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Preferred Batch</label>
@@ -214,9 +247,13 @@ export default function ClassDetail() {
                     </select>
                   </div>
                 </div>
+                <div>
+                  <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Message (Optional)</label>
+                  <textarea rows={2} value={regForm.message} onChange={(e) => setRegForm({ ...regForm, message: e.target.value })} placeholder="Any message or questions for the studio..." className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`} />
+                </div>
 
                 <button type="submit" disabled={regLoading} className="w-full py-3 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-widest hover:bg-gold-400 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg">
-                  {regLoading ? 'Submitting...' : 'Submit Registration'}
+                  {regLoading ? 'Submitting...' : 'Submit Join Class Request'}
                   <Send className="w-4 h-4" />
                 </button>
               </form>

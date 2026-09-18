@@ -54,7 +54,7 @@ export default function ServicesSection() {
   const { isDark } = useTheme();
 
   return (
-    <section className={`py-24 relative overflow-hidden transition-colors ${isDark ? 'bg-dark-900 text-warm-50' : 'bg-warm-50 text-dark-950'}`}>
+    <section className={`pt-32 pb-24 md:pt-36 relative overflow-hidden transition-colors ${isDark ? 'bg-dark-900 text-warm-50' : 'bg-warm-50 text-dark-950'}`}>
       <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">

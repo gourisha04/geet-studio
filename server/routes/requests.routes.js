@@ -4,7 +4,6 @@ import CommunityLead from '../models/CommunityLead.js';
 import Query from '../models/Query.js';
 import { protect } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
-import { sendCommunityRequestNotification, sendQueryNotification } from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -43,15 +42,9 @@ router.post('/community/requests', async (req, res, next) => {
       newRequest = { _id: `req_${Date.now()}`, leadId, requesterName, requesterEmail, requesterPhone, serviceRequired };
     }
 
-    // Trigger Resend email to Geet Studio team
-    sendCommunityRequestNotification(
-      { requesterName, requesterEmail, requesterPhone, serviceRequired, eventType, eventDate, location, message },
-      lead?.name || 'Community Lead'
-    ).catch((e) => console.warn('Resend trigger note:', e.message));
-
     res.status(201).json({
       success: true,
-      message: 'Community lead service request stored and emailed to Geet Studio team.',
+      message: 'Community lead service request stored successfully.',
       data: newRequest,
     });
   } catch (error) {
@@ -68,28 +61,20 @@ router.post('/queries', async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Name, email, phone, and message are required.' });
     }
 
-    let queryRecord = null;
-    try {
-      queryRecord = new Query({
-        name,
-        email,
-        phone,
-        category: category || 'General',
-        message,
-        source: source || 'Website Form',
-        status: 'NEW',
-      });
-      await queryRecord.save();
-    } catch (err) {
-      queryRecord = { _id: `qry_${Date.now()}`, name, email, phone, category, message, status: 'NEW' };
-    }
-
-    // Trigger Resend notification to geetdancestudio@gmail.com
-    sendQueryNotification({ name, email, phone, category, message }).catch((e) => console.warn('Query email note:', e.message));
+    const queryRecord = new Query({
+      name,
+      email,
+      phone,
+      category: category || 'General',
+      message,
+      source: source || 'Website Form',
+      status: 'NEW',
+    });
+    await queryRecord.save();
 
     res.status(201).json({
       success: true,
-      message: 'Query stored and emailed to studio team',
+      message: 'Query stored successfully',
       data: queryRecord,
     });
   } catch (error) {
@@ -100,12 +85,7 @@ router.post('/queries', async (req, res, next) => {
 // GET /api/queries — Admin view queries
 router.get('/queries', protect, requireRole('admin'), async (req, res, next) => {
   try {
-    let queries = [];
-    try {
-      queries = await Query.find().sort({ createdAt: -1 });
-    } catch (err) {
-      queries = [];
-    }
+    const queries = await Query.find().sort({ createdAt: -1 });
     res.json({ success: true, count: queries.length, data: queries });
   } catch (error) {
     next(error);

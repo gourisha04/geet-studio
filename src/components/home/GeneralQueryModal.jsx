@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, CheckCircle2 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { api } from '../../utils/api';
 
 export default function GeneralQueryModal({ isOpen, onClose, initialCategory = 'General' }) {
   const { isDark } = useTheme();
@@ -14,19 +15,33 @@ export default function GeneralQueryModal({ isOpen, onClose, initialCategory = '
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
     try {
-      // Send query payload to backend endpoint /api/queries
-      await new Promise((res) => setTimeout(res, 800)); // Simulating fast API call
-      setSubmitted(true);
+      const res = await api.post('/api/queries', {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        category: formData.category,
+        message: formData.message,
+        source: 'General Query Modal',
+      });
+      if (res?.success) {
+        setSubmitted(true);
+        setFormData({ name: '', email: '', phone: '', category: initialCategory, message: '' });
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
     } catch (err) {
-      console.error(err);
+      console.error('Query submission error:', err);
+      setError(err.message || 'Failed to submit query. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -176,6 +191,10 @@ export default function GeneralQueryModal({ isOpen, onClose, initialCategory = '
                     }`}
                   />
                 </div>
+
+                {error && (
+                  <p className="text-red-400 text-xs font-semibold text-center">{error}</p>
+                )}
 
                 <button
                   type="submit"

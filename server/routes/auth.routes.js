@@ -173,10 +173,16 @@ router.post('/logout', (req, res) => {
 });
 
 // GET /api/auth/me
-router.get('/me', protect, (req, res) => {
-  res.json({
-    success: true,
-    user: req.user,
+router.get('/me', (req, res, next) => {
+  if (!req.cookies?.jwt && !req.headers.authorization) {
+    return res.json({ success: true, user: null });
+  }
+
+  return protect(req, res, () => {
+    res.json({
+      success: true,
+      user: req.user,
+    });
   });
 });
 

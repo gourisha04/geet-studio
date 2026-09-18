@@ -5,23 +5,24 @@ import { useTheme } from '../../context/ThemeContext';
 
 const navColumns = [
   {
-    title: 'Services',
+    title: 'EXPLORE',
     links: [
       { name: 'Dance', path: '/services/dance' },
       { name: 'Music', path: '/services/music' },
-      { name: 'Fitness', path: '/services/fitness' },
+      { name: 'Fitness & Movement', path: '/services/fitness' },
       { name: 'Events & Productions', path: '/services/events-productions' },
     ],
   },
   {
-    title: 'Community',
+    title: 'COMMUNITY',
     links: [
       { name: 'Explore Community', path: '/community' },
-      { name: 'Join as Lead', path: '/register' },
+      { name: 'Join the Community', path: '/community' },
+      { name: 'Collaborate With Us', path: '/contact' },
     ],
   },
   {
-    title: 'Learn',
+    title: 'LEARN',
     links: [
       { name: 'Classes', path: '/classes' },
       { name: 'Workshops', path: '/workshops' },
@@ -30,13 +31,13 @@ const navColumns = [
     ],
   },
   {
-    title: 'Studio',
+    title: 'STUDIO',
     links: [
       { name: 'Events', path: '/events' },
       { name: 'Gallery', path: '/gallery' },
       { name: 'About', path: '/about' },
+      { name: "What’s New", path: '/updates' },
       { name: 'Contact', path: '/contact' },
-      { name: "What's New", path: '/updates' },
     ],
   },
 ];
@@ -62,14 +63,19 @@ export default function Footer() {
               </span>
             </Link>
             <p className={`font-editorial text-base italic mb-6 max-w-xs ${isDark ? 'text-dark-200' : 'text-dark-300'}`}>
-              Where Movement Becomes Expression
+              Where Movement Becomes Expression.
             </p>
 
             <div className="space-y-3">
-              <div className={`flex items-center gap-2 text-sm ${isDark ? 'text-dark-200' : 'text-dark-400'}`}>
+              <a
+                href="https://maps.app.goo.gl/bZWfcrfVsUsPM9RP7?g_st=ic"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center gap-2 text-sm transition-colors hover:text-gold-500 ${isDark ? 'text-dark-200' : 'text-dark-400'}`}
+              >
                 <MapPin className="w-4 h-4 text-gold-500/70" />
                 Indore, Madhya Pradesh
-              </div>
+              </a>
               <a href="tel:+918770409447" className={`flex items-center gap-2 text-sm transition-colors hover:text-gold-500 ${isDark ? 'text-dark-200' : 'text-dark-400'}`}>
                 <Phone className="w-4 h-4 text-gold-500/70" />
                 +91 87704 09447

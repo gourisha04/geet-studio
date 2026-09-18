@@ -12,6 +12,7 @@ const gallerySchema = new mongoose.Schema(
     mediaUrl: { type: String, required: true },
     publicId: { type: String },
     mediaType: { type: String, enum: ['image', 'video'], default: 'image' },
+    displayOrder: { type: Number, default: 0, index: true },
     active: { type: Boolean, default: true },
   },
   { timestamps: true }

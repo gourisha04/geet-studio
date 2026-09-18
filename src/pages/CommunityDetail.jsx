@@ -1,69 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MapPin, ShieldCheck, Globe, ArrowLeft, Send, CheckCircle2, Award, Mail, Phone, Home, X } from 'lucide-react';
+import { MapPin, ShieldCheck, ArrowLeft, Send, CheckCircle2, Award, Mail, Phone, Home, X } from 'lucide-react';
 import { Instagram } from '../components/icons/Instagram';
 import { Youtube } from '../components/icons/Youtube';
 import { useTheme } from '../context/ThemeContext';
 import { api } from '../utils/api';
 
-const seedLeadsMap = {
-  'lead-1': {
-    id: 'lead-1',
-    name: 'Aarav Sharma',
-    category: 'Dancers',
-    profession: 'Bollywood & Freestyle Choreographer',
-    location: 'Indore, Madhya Pradesh',
-    bio: 'Professional dancer and master choreographer based in Indore with over 6 years of experience training students, choreographing grand sangeets, corporate events, and music videos across Central India.',
-    services: ['Sangeet Choreography', 'Solo Dance Acts', 'Dance Workshops', 'Competition Judging', 'Music Video Choreography'],
-    experience: '6+ Years Experience',
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80',
-    instagram: 'https://instagram.com/aarav_dance',
-    youtube: 'https://youtube.com',
-    email: 'aarav.dance@gmail.com',
-    phone: '+91 87704 09447',
-    address: 'Geet Studio, Vijay Nagar, Indore, Madhya Pradesh',
-    portfolioPhotos: [
-      'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800&q=80',
-      'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80',
-    ],
-  },
-  'lead-2': {
-    id: 'lead-2',
-    name: 'DJ Rohan Malhotra',
-    category: 'DJs',
-    profession: 'EDM, Commercial & Bollywood DJ',
-    location: 'Indore, Madhya Pradesh',
-    bio: 'High-energy live DJ with 8+ years experience performing at top clubs, celebrity weddings, and college fests in MP.',
-    services: ['Club DJing', 'Wedding Sangeet DJ', 'Sound & Console Setup', 'Private Party Sets'],
-    experience: '8+ Years Experience',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80',
-    instagram: 'https://instagram.com/djrohan',
-    youtube: 'https://youtube.com',
-    email: 'djrohan@gmail.com',
-    phone: '+91 98765 43210',
-    address: 'Sapna Sangeeta Road, Indore, MP',
-    portfolioPhotos: [
-      'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80',
-    ],
-  },
-};
-
 export default function CommunityDetail() {
   const { id } = useParams();
   const { isDark } = useTheme();
-  const [lead, setLead] = useState(() => seedLeadsMap[id] || seedLeadsMap['lead-1']);
+  const [lead, setLead] = useState(null);
+  const [loadingLead, setLoadingLead] = useState(true);
 
   const [contactModal, setContactModal] = useState(false);
   const [contactRevealed, setContactRevealed] = useState(false);
   const [revealedData, setRevealedData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const [form, setForm] = useState({
-    requesterName: '',
-    requesterEmail: '',
-    requesterPhone: '',
-    purpose: 'Hire for Event',
+    name: '',
+    email: '',
   });
 
   useEffect(() => {
@@ -72,10 +30,28 @@ export default function CommunityDetail() {
       try {
         const res = await api.get(`/api/community/${id}`);
         if (!cancelled && res?.success && res?.data) {
-          setLead((prev) => ({ ...prev, ...res.data }));
+          const raw = res.data;
+          const normalized = {
+            ...raw,
+            id: raw._id || raw.id,
+            image: raw.profileImage?.url || raw.image || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80',
+            services: Array.isArray(raw.services) ? raw.services : [],
+            instagram: raw.socialLinks?.instagram || raw.instagram || '',
+            youtube: raw.socialLinks?.youtube || raw.youtube || '',
+            portfolioPhotos: Array.isArray(raw.portfolioPhotos)
+              ? raw.portfolioPhotos.map((p) => (typeof p === 'string' ? p : p?.url)).filter(Boolean)
+              : [],
+            portfolioVideo: Array.isArray(raw.portfolioVideos) && raw.portfolioVideos.length > 0
+              ? (typeof raw.portfolioVideos[0] === 'string' ? raw.portfolioVideos[0] : raw.portfolioVideos[0]?.url)
+              : (raw.portfolioVideo || ''),
+            location: raw.location || [raw.city, raw.area].filter(Boolean).join(', ') || 'Indore, MP',
+          };
+          setLead(normalized);
         }
       } catch {
-        // Fallback to seed data
+        if (!cancelled) setLead(null);
+      } finally {
+        if (!cancelled) setLoadingLead(false);
       }
     };
     fetchLead();
@@ -84,33 +60,39 @@ export default function CommunityDetail() {
     };
   }, [id]);
 
-  const handleGetContact = async (e) => {
+  if (loadingLead) {
+    return <div className={`pt-32 pb-24 min-h-screen flex items-center justify-center ${isDark ? 'bg-dark-950 text-warm-50' : 'bg-warm-50 text-dark-950'}`}>Loading profile...</div>;
+  }
+
+  if (!lead) {
+    return (
+      <div className={`pt-32 pb-24 min-h-screen flex items-center justify-center ${isDark ? 'bg-dark-950 text-warm-50' : 'bg-warm-50 text-dark-950'}`}>
+        <div className="text-center">
+          <h1 className="font-heading text-4xl font-bold mb-4">Community Profile Not Found</h1>
+          <Link to="/community" className="px-6 py-3 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-wider">Back to Community</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const handleAccessDetails = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMsg('');
     try {
-      const visitorId = localStorage.getItem('geet_visitor_id') || 'v_unknown';
-      const sessionId = sessionStorage.getItem('geet_session_id') || 's_unknown';
-
-      const res = await api.post(`/api/community/${id}/reveal-contact`, {
-        ...form,
-        visitorId,
-        sessionId,
+      const res = await api.post(`/api/community/leads/${id}/access`, {
+        name: form.name,
+        email: form.email,
       });
 
       if (res?.success) {
         setRevealedData(res);
         setContactRevealed(true);
       } else {
-        throw new Error(res?.message || 'Failed to fetch contact details');
+        throw new Error(res?.message || 'Unable to retrieve contact details.');
       }
     } catch (err) {
-      console.warn('API reveal failed, using fallback:', err.message);
-      setRevealedData({
-        email: lead.email || 'hello@geetstudio.in',
-        phone: lead.phone || '+91 87704 09447',
-        address: lead.address || 'Geet Studio, Indore, MP',
-      });
-      setContactRevealed(true);
+      setErrorMsg(err.message || 'Unable to retrieve contact details.');
     } finally {
       setLoading(false);
     }
@@ -145,7 +127,7 @@ export default function CommunityDetail() {
             <div>
               <div className="flex items-center gap-2 text-xs text-gold-500 font-semibold mb-2">
                 <ShieldCheck className="w-4 h-4" />
-                <span>Verified Geet Studio Community Lead</span>
+                <span>Verified Geet Studio Community Member</span>
               </div>
               <h1 className="font-heading text-4xl md:text-5xl font-bold">{lead.name}</h1>
               <p className="font-editorial text-xl italic text-gold-400 mt-1">{lead.profession}</p>
@@ -203,7 +185,7 @@ export default function CommunityDetail() {
                 className="px-8 py-3.5 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-[0.2em] hover:bg-gold-400 transition-all shadow-lg flex items-center gap-2 cursor-pointer"
               >
                 <Send className="w-4 h-4" />
-                Get Contact Details
+                Access Details
               </button>
             </div>
           </div>
@@ -252,7 +234,7 @@ export default function CommunityDetail() {
         )}
       </div>
 
-      {/* Contact Details Modal */}
+      {/* Access Details Modal */}
       {contactModal && (
         <div className="fixed inset-0 z-[220] flex items-center justify-center p-4 bg-dark-950/85 backdrop-blur-md" onClick={() => { setContactModal(false); setContactRevealed(false); }}>
           <motion.div
@@ -271,29 +253,29 @@ export default function CommunityDetail() {
               <div className="py-4">
                 <div className="text-center mb-6">
                   <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
-                  <h3 className="font-heading text-2xl font-bold mb-1">Contact Details</h3>
-                  <p className="text-sm opacity-70">Here are the contact details for <strong className="text-gold-500">{lead.name}</strong></p>
+                  <h3 className="font-heading text-2xl font-bold mb-1">Contact Details Revealed</h3>
+                  <p className="text-sm opacity-70">Contact information for <strong className="text-gold-500">{lead.name}</strong>:</p>
                 </div>
 
                 <div className={`space-y-4 p-5 rounded-xl border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-200'}`}>
                   <div className="flex items-start gap-3">
-                    <Mail className="w-5 h-5 text-gold-500 mt-0.5 shrink-0" />
+                    <Phone className="w-5 h-5 text-gold-500 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-xs uppercase tracking-wider font-semibold text-gold-500 mb-0.5">Email</p>
-                      <a href={`mailto:${revealedData?.email || lead.email}`} className="text-sm hover:text-gold-500 transition-colors">{revealedData?.email || lead.email}</a>
+                      <p className="text-xs uppercase tracking-wider font-semibold text-gold-500 mb-0.5">Phone Number</p>
+                      <a href={`tel:${revealedData?.phone || lead.phone}`} className="text-sm font-bold hover:text-gold-500 transition-colors">{revealedData?.phone || lead.phone}</a>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Phone className="w-5 h-5 text-gold-500 mt-0.5 shrink-0" />
+                    <Mail className="w-5 h-5 text-gold-500 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-xs uppercase tracking-wider font-semibold text-gold-500 mb-0.5">Phone</p>
-                      <a href={`tel:${revealedData?.phone || lead.phone}`} className="text-sm hover:text-gold-500 transition-colors">{revealedData?.phone || lead.phone}</a>
+                      <p className="text-xs uppercase tracking-wider font-semibold text-gold-500 mb-0.5">Email Address</p>
+                      <a href={`mailto:${revealedData?.email || lead.email}`} className="text-sm font-bold hover:text-gold-500 transition-colors">{revealedData?.email || lead.email}</a>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Home className="w-5 h-5 text-gold-500 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-xs uppercase tracking-wider font-semibold text-gold-500 mb-0.5">Address</p>
+                      <p className="text-xs uppercase tracking-wider font-semibold text-gold-500 mb-0.5">Location / Studio</p>
                       <p className="text-sm">{revealedData?.address || lead.address}</p>
                     </div>
                   </div>
@@ -307,62 +289,41 @@ export default function CommunityDetail() {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleGetContact} className="space-y-4">
+              <form onSubmit={handleAccessDetails} className="space-y-4">
                 <div>
-                  <p className="text-xs uppercase text-gold-500 font-semibold tracking-wider">Get Contact Details</p>
+                  <p className="text-xs uppercase text-gold-500 font-semibold tracking-wider">Access Details</p>
                   <h3 className="font-heading text-2xl font-bold">{lead.name}</h3>
-                  <p className="text-sm opacity-70 mt-1">Fill in your details to view {lead.name}'s contact information.</p>
+                  <p className="text-sm opacity-70 mt-1">Please enter your name and email to view contact information.</p>
                 </div>
 
+                {errorMsg && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/40 text-red-400 text-xs rounded">
+                    {errorMsg}
+                  </div>
+                )}
+
                 <div>
-                  <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Your Full Name *</label>
+                  <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Name *</label>
                   <input
                     type="text"
                     required
-                    value={form.requesterName}
-                    onChange={(e) => setForm({ ...form, requesterName: e.target.value })}
-                    placeholder="Enter your name"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="Enter your full name"
                     className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Email *</label>
-                    <input
-                      type="email"
-                      required
-                      value={form.requesterEmail}
-                      onChange={(e) => setForm({ ...form, requesterEmail: e.target.value })}
-                      placeholder="email@example.com"
-                      className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Phone *</label>
-                    <input
-                      type="tel"
-                      required
-                      value={form.requesterPhone}
-                      onChange={(e) => setForm({ ...form, requesterPhone: e.target.value })}
-                      placeholder="10-digit number"
-                      className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
-                    />
-                  </div>
-                </div>
-
                 <div>
-                  <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Purpose *</label>
-                  <select
-                    value={form.purpose}
-                    onChange={(e) => setForm({ ...form, purpose: e.target.value })}
+                  <label className="block text-xs uppercase font-semibold opacity-80 mb-1">Email ID *</label>
+                  <input
+                    type="email"
+                    required
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    placeholder="email@example.com"
                     className={`w-full p-2.5 text-sm rounded border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`}
-                  >
-                    <option value="Hire for Event">Hire for Event</option>
-                    <option value="Collaboration">Collaboration</option>
-                    <option value="Business Inquiry">Business Inquiry</option>
-                    <option value="General Query">General Query</option>
-                  </select>
+                  />
                 </div>
 
                 <button
@@ -370,7 +331,7 @@ export default function CommunityDetail() {
                   disabled={loading}
                   className="w-full py-3 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-widest hover:bg-gold-400 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg"
                 >
-                  {loading ? 'Verifying...' : 'View Contact Details'}
+                  {loading ? 'Submitting...' : 'Access Details'}
                   <Send className="w-4 h-4" />
                 </button>
               </form>

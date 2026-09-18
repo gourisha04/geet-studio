@@ -7,7 +7,6 @@ import { validateEnv } from './config/env.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { rateLimiter } from './middleware/rateLimiter.js';
 import { seedAdminUser } from './utils/seedAdmin.js';
-import { PaymentProvider } from './services/paymentProvider.js';
 
 // Route Imports
 import authRoutes from './routes/auth.routes.js';
@@ -21,6 +20,7 @@ import galleryRoutes from './routes/gallery.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import servicesRoutes from './routes/services.routes.js';
 
 dotenv.config({ path: './server/.env' });
 dotenv.config();
@@ -29,16 +29,9 @@ validateEnv();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Initialize Database Connection, Admin Seed, and 5-Minute Seat Hold Expiration Worker
+// Initialize Database Connection and Admin Seed
 connectDB().then(() => {
   seedAdminUser();
-  // 1. Immediate startup sweep for any enrollments expired while server was offline
-  PaymentProvider.cleanupExpiredEnrollments().catch((e) => console.warn('Startup cleanup note:', e.message));
-
-  // 2. Production Recurring Background Worker (runs every 60 seconds)
-  setInterval(() => {
-    PaymentProvider.cleanupExpiredEnrollments().catch((e) => console.warn('Worker cleanup note:', e.message));
-  }, 60 * 1000);
 });
 
 // Security & Core Middlewares (Phase 17)
@@ -73,7 +66,15 @@ app.use(
   })
 );
 
-app.use('/api', rateLimiter(200, 15 * 60 * 1000));
+const isProduction = process.env.NODE_ENV === 'production';
+const authLoginLimit = isProduction ? 10 : 30;
+const authLoginWindow = 15 * 60 * 1000;
+
+// Login has its own brute-force limit; session checks and public API traffic do not consume it.
+app.use('/api/auth/login', rateLimiter(authLoginLimit, authLoginWindow));
+app.use('/api', rateLimiter(200, 15 * 60 * 1000, {
+  skip: (req) => req.method === 'GET' || req.path === '/auth/login',
+}));
 
 // Root Health & Status Route
 app.get('/', (req, res) => {
@@ -116,6 +117,7 @@ app.use('/api/instructors', instructorsRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/services', servicesRoutes);
 app.use('/api', requestsRoutes);
 app.use('/api', uploadRoutes);
 
@@ -125,5 +127,4 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`🚀 Geet Studio Express REST Server running on port ${PORT}`);
   console.log(`🌍 Timezone locked to Asia/Kolkata (IST)`);
-  console.log(`⏱️ 5-Minute Payment-Pending Expiration Worker Active (60s Sweep)`);
 });

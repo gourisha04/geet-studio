@@ -4,7 +4,6 @@ const serviceSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      enum: ['Dance', 'Music', 'Fitness', 'Events & Productions'],
       required: true,
       unique: true,
     },

@@ -1,8 +1,12 @@
 // Sliding-window API Rate Limiter
 const requestsMap = new Map();
 
-export const rateLimiter = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
+export const rateLimiter = (maxRequests = 100, windowMs = 15 * 60 * 1000, options = {}) => {
   return (req, res, next) => {
+    if (options.skip?.(req)) {
+      return next();
+    }
+
     const ip = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
     const now = Date.now();
 

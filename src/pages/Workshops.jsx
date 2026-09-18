@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Filter, Award, Video, MessageSquare, Coffee, CheckCircle, Send, X, Calendar, Clock, MapPin, Search } from 'lucide-react';
+import { Sparkles, Filter, CheckCircle, Send, X, Search } from 'lucide-react';
 import WorkshopCard from '../components/cards/WorkshopCard';
 import PageTransition from '../components/ui/PageTransition';
-import { workshops } from '../data/workshops';
 import { useTheme } from '../context/ThemeContext';
+import { api } from '../utils/api';
+import { normalizeWorkshopRecord } from '../utils/contentAdapters';
 
 const filterCategories = ['All', 'Bollywood', 'Hip-Hop', 'Contemporary', 'Salsa'];
 
@@ -12,25 +13,59 @@ export default function Workshops() {
   const { isDark } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [workshopRecords, setWorkshopRecords] = useState([]);
   
   // Registration modal state
   const [activeWorkshop, setActiveWorkshop] = useState(null);
   const [regForm, setRegForm] = useState({ name: '', email: '', phone: '', note: '' });
   const [regSuccess, setRegSuccess] = useState(false);
+  const [regLoading, setRegLoading] = useState(false);
+  const [regError, setRegError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    api.get('/api/classes')
+      .then((res) => {
+        if (!cancelled && res?.success && Array.isArray(res.data)) {
+          setWorkshopRecords(res.data.filter((item) => item.type === 'workshop').map(normalizeWorkshopRecord));
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   const filteredWorkshops = useMemo(() => {
-    return workshops.filter((w) => {
+    return workshopRecords.filter((w) => {
       const matchesCat = selectedCategory === 'All' || w.style.toLowerCase().includes(selectedCategory.toLowerCase());
       const matchesSearch = w.name.toLowerCase().includes(searchQuery.toLowerCase()) || w.instructor.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCat && matchesSearch;
     });
-  }, [selectedCategory, searchQuery]);
+  }, [workshopRecords, selectedCategory, searchQuery]);
 
-  const featuredWorkshop = workshops[0];
+  const featuredWorkshop = workshopRecords[0];
 
-  const handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    setRegSuccess(true);
+    setRegLoading(true);
+    setRegError('');
+    try {
+      const response = await api.post('/api/enrollments', {
+        classId: activeWorkshop?._id || activeWorkshop?.id,
+        className: activeWorkshop?.name,
+        studentName: regForm.name,
+        email: regForm.email,
+        phone: regForm.phone,
+        message: regForm.note,
+      });
+      if (!response?.success) {
+        throw new Error(response?.message || 'Unable to submit enrollment request.');
+      }
+      setRegSuccess(true);
+    } catch (error) {
+      setRegError(error.message || 'Unable to submit enrollment request. Please try again.');
+    } finally {
+      setRegLoading(false);
+    }
   };
 
   return (
@@ -55,7 +90,7 @@ export default function Workshops() {
 
               {/* Stat Pills */}
               <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-gold-400">
-                <span className="px-3.5 py-1.5 rounded-xl bg-dark-900 border border-dark-700">🔥 {workshops.length} Active Masterclasses</span>
+                <span className="px-3.5 py-1.5 rounded-xl bg-dark-900 border border-dark-700">🔥 {workshopRecords.length} Active Masterclasses</span>
                 <span className="px-3.5 py-1.5 rounded-xl bg-dark-900 border border-dark-700">📜 Verified Certificates</span>
                 <span className="px-3.5 py-1.5 rounded-xl bg-dark-900 border border-dark-700">🎟️ Limited Batch Sizes</span>
               </div>
@@ -139,43 +174,42 @@ export default function Workshops() {
 
             {/* 4. Why Attend Workshops Section */}
             <div className="pt-16 border-t border-dark-800">
-              <div className="text-center max-w-2xl mx-auto mb-12">
-                <p className="text-xs uppercase tracking-[0.2em] font-bold text-gold-500 mb-2">Workshop Advantage</p>
-                <h3 className="font-heading text-3xl font-bold">Why Attend A <span className="text-gold-500">Geet Studio</span> Intensive?</h3>
+              <div className="text-center max-w-3xl mx-auto mb-12">
+                <p className="text-xs uppercase tracking-[0.2em] font-bold text-gold-500 mb-2">WORKSHOP EXPERIENCE</p>
+                <h3 className="font-heading text-3xl font-bold mb-4">Why Attend a <span className="text-gold-500">Geet Studio</span> Intensive?</h3>
+                <p className="font-editorial text-lg italic text-gold-400">
+                  "You leave different from how you arrived."
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="p-6 rounded-2xl border border-dark-800 bg-dark-900/40 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-gold-500/10 text-gold-500 flex items-center justify-center mx-auto">
-                    <Award className="w-6 h-6" />
-                  </div>
-                  <h4 className="font-heading font-bold text-lg text-warm-50">Official Certificate</h4>
-                  <p className="text-xs opacity-75 leading-relaxed">Every participant receives a signed studio certificate of completion for portfolio building.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div className="p-6 rounded-2xl border border-dark-800 bg-dark-900/40 text-left space-y-3">
+                  <span className="text-xs font-bold text-gold-500 uppercase tracking-widest">01 · Learn Beyond the Routine</span>
+                  <p className="text-xs opacity-80 leading-relaxed">Step outside your regular training and spend focused time exploring a new style, technique, or creative approach.</p>
                 </div>
 
-                <div className="p-6 rounded-2xl border border-dark-800 bg-dark-900/40 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-gold-500/10 text-gold-500 flex items-center justify-center mx-auto">
-                    <Video className="w-6 h-6" />
-                  </div>
-                  <h4 className="font-heading font-bold text-lg text-warm-50">HD Recording Video</h4>
-                  <p className="text-xs opacity-75 leading-relaxed">Full 4K performance video of the final choreography shoot delivered to every student.</p>
+                <div className="p-6 rounded-2xl border border-dark-800 bg-dark-900/40 text-left space-y-3">
+                  <span className="text-xs font-bold text-gold-500 uppercase tracking-widest">02 · Learn Directly From Artists</span>
+                  <p className="text-xs opacity-80 leading-relaxed">Get closer to the people behind the craft through focused instruction, demonstrations, and practical guidance.</p>
                 </div>
 
-                <div className="p-6 rounded-2xl border border-dark-800 bg-dark-900/40 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-gold-500/10 text-gold-500 flex items-center justify-center mx-auto">
-                    <MessageSquare className="w-6 h-6" />
-                  </div>
-                  <h4 className="font-heading font-bold text-lg text-warm-50">1-on-1 Feedback</h4>
-                  <p className="text-xs opacity-75 leading-relaxed">Personalized musicality correction and technique feedback from guest master faculty.</p>
+                <div className="p-6 rounded-2xl border border-dark-800 bg-dark-900/40 text-left space-y-3">
+                  <span className="text-xs font-bold text-gold-500 uppercase tracking-widest">03 · Practice. Create. Perform.</span>
+                  <p className="text-xs opacity-80 leading-relaxed">Don’t just learn choreography or technique. Put it into practice, create something with it, and experience the energy of performing.</p>
                 </div>
 
-                <div className="p-6 rounded-2xl border border-dark-800 bg-dark-900/40 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-gold-500/10 text-gold-500 flex items-center justify-center mx-auto">
-                    <Coffee className="w-6 h-6" />
-                  </div>
-                  <h4 className="font-heading font-bold text-lg text-warm-50">Artist Lounge & Snacks</h4>
-                  <p className="text-xs opacity-75 leading-relaxed">Complimentary refreshments and open networking sessions with fellow dancers.</p>
+                <div className="p-6 rounded-2xl border border-dark-800 bg-dark-900/40 text-left space-y-3">
+                  <span className="text-xs font-bold text-gold-500 uppercase tracking-widest">04 · Meet People Who Create</span>
+                  <p className="text-xs opacity-80 leading-relaxed">Connect with dancers, musicians, artists, and other creatives who are learning, experimenting, and building alongside you.</p>
                 </div>
+              </div>
+
+              {/* Secondary Line: Workshop Extras */}
+              <div className="p-6 rounded-2xl border border-gold-500/20 bg-dark-900/60 text-center max-w-4xl mx-auto">
+                <p className="text-xs font-bold text-gold-500 uppercase tracking-widest mb-2">Workshop Extras</p>
+                <p className="text-xs md:text-sm text-warm-50/90 font-medium">
+                  🎥 Performance Capture &nbsp;·&nbsp; 💬 Personal Feedback &nbsp;·&nbsp; 📜 Certificate of Participation &nbsp;·&nbsp; ☕ Community & Networking
+                </p>
               </div>
             </div>
 
@@ -208,6 +242,7 @@ export default function Workshops() {
                   </div>
                 ) : (
                   <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                    {regError && <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/30 p-3">{regError}</p>}
                     <div>
                       <span className="text-[10px] font-bold uppercase text-gold-500 tracking-wider">Registering For Intensive</span>
                       <h3 className="font-heading text-xl font-bold text-gold-500">{activeWorkshop.name}</h3>
@@ -229,8 +264,8 @@ export default function Workshops() {
                       <input type="tel" required value={regForm.phone} onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })} className={`w-full p-2.5 text-sm rounded-xl border ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-warm-50 border-warm-300'}`} />
                     </div>
 
-                    <button type="submit" className="w-full py-3.5 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-lg rounded-xl">
-                      <Send className="w-4 h-4" /> Submit Enrollment Interest
+                    <button type="submit" disabled={regLoading} className="w-full py-3.5 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-lg rounded-xl">
+                      <Send className="w-4 h-4" /> {regLoading ? 'Submitting...' : 'Submit Enrollment Interest'}
                     </button>
                   </form>
                 )}

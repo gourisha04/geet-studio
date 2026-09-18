@@ -26,8 +26,6 @@ import Register from './pages/Register';
 import Account from './pages/Account';
 import LeadDashboard from './pages/LeadDashboard';
 import Enroll from './pages/Enroll';
-import Payment from './pages/Payment';
-import PaymentSuccess from './pages/PaymentSuccess';
 import AdminDashboard from './pages/admin/AdminDashboard';
 
 export default function App() {
@@ -66,12 +64,10 @@ export default function App() {
                 <Route path="/account" element={<Account />} />
                 <Route path="/account/enrollments" element={<Account />} />
 
-                {/* Enrollment & Payment */}
+                {/* Enrollment Request */}
                 <Route path="/enroll/:id" element={<Enroll />} />
-                <Route path="/payment/:id" element={<Payment />} />
-                <Route path="/payment-success" element={<PaymentSuccess />} />
 
-                {/* Community Lead Dashboard */}
+                {/* Community Member Dashboard */}
                 <Route path="/lead/dashboard" element={<LeadDashboard />} />
 
                 {/* Admin */}

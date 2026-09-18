@@ -1,14 +1,46 @@
 import { useParams, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, MapPin, Users, Camera, Video, CheckCircle } from 'lucide-react';
-import { getEventById, events } from '../data/events';
 import Button from '../components/ui/Button';
 import PageTransition from '../components/ui/PageTransition';
 import EventCard from '../components/cards/EventCard';
+import { api } from '../utils/api';
 
 export default function EventDetail() {
   const { id } = useParams();
-  const event = getEventById(id);
+  const [event, setEvent] = useState(null);
+  const [relatedEvents, setRelatedEvents] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([api.get(`/api/events/${id}`), api.get('/api/events')])
+      .then(([detailResponse, listResponse]) => {
+        if (cancelled) return;
+        const record = detailResponse?.data;
+        if (!detailResponse?.success || !record) return;
+        const mapEvent = (item) => ({
+          ...item,
+          id: item._id,
+          name: item.title,
+          image: item.media?.url || 'https://images.unsplash.com/photo-1545959570-a94084071b5d?w=800&q=80',
+          type: item.status === 'UPCOMING' ? 'upcoming' : 'past',
+          date: item.date ? new Date(item.date).toLocaleDateString('en-IN') : 'TBA',
+            price: item.price ?? null,
+            totalSeats: item.seats ?? null,
+            availableSeats: item.seats ?? null,
+          longDescription: item.description || '',
+          highlights: [],
+        });
+        const mappedEvent = mapEvent(record);
+        setEvent(mappedEvent);
+        setRelatedEvents((listResponse?.data || []).map(mapEvent).filter((item) => item.id !== mappedEvent.id).slice(0, 3));
+      })
+      .catch(() => {
+        if (!cancelled) setEvent(null);
+      });
+    return () => { cancelled = true; };
+  }, [id]);
 
   if (!event) {
     return (
@@ -24,8 +56,6 @@ export default function EventDetail() {
   }
 
   const isUpcoming = event.type === 'upcoming';
-  const relatedEvents = events.filter((e) => e.id !== event.id).slice(0, 3);
-
   return (
     <PageTransition>
       {/* Hero */}
@@ -134,13 +164,17 @@ export default function EventDetail() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <Users className="w-4 h-4 text-gold-500" />
-                    <span className="text-sm text-dark-200">
-                      {event.availableSeats} of {event.totalSeats} seats available
-                    </span>
+                    {event.availableSeats !== null && (
+                      <span className="text-sm text-dark-200">
+                        {event.availableSeats} of {event.totalSeats} seats available
+                      </span>
+                    )}
                   </div>
-                  <p className="font-heading text-2xl font-bold text-gold-500">
-                    {event.price === 0 ? 'Free Entry' : `₹${event.price}`}
-                  </p>
+                  {event.price !== null && (
+                    <p className="font-heading text-2xl font-bold text-gold-500">
+                      {event.price === 0 ? 'Free Entry' : `₹${event.price}`}
+                    </p>
+                  )}
                 </div>
                 <Button to={`/enroll/${event.id}`} variant="primary" size="lg">
                   Register Now

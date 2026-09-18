@@ -2,7 +2,6 @@ import { useState, useCallback, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import WelcomeAnimation from '../components/intro/WelcomeAnimation';
 import DailyUpdate from '../components/intro/DailyUpdate';
-import UpcomingEventsModal from '../components/intro/UpcomingEventsModal';
 import Hero from '../components/home/Hero';
 import ServicesSection from '../components/home/ServicesSection';
 import CommunitySection from '../components/home/CommunitySection';
@@ -15,7 +14,6 @@ export default function Home() {
   const [introPhase, setIntroPhase] = useState(() => {
     return sessionStorage.getItem('geet_intro_played') ? 2 : 0;
   });
-  const [showEventsModal, setShowEventsModal] = useState(false);
   const [showQueryPopup, setShowQueryPopup] = useState(false);
   const queryPopupShown = useRef(false);
 
@@ -26,7 +24,6 @@ export default function Home() {
   const handleDailyComplete = useCallback(() => {
     sessionStorage.setItem('geet_intro_played', 'true');
     setIntroPhase(2);
-    setTimeout(() => setShowEventsModal(true), 800);
   }, []);
 
   // Called when user scrolls past the Community section toward About
@@ -47,16 +44,6 @@ export default function Home() {
         )}
         {introPhase === 1 && (
           <DailyUpdate key="daily" onComplete={handleDailyComplete} />
-        )}
-      </AnimatePresence>
-
-      {/* Upcoming Events Modal */}
-      <AnimatePresence>
-        {showEventsModal && (
-          <UpcomingEventsModal
-            isOpen={showEventsModal}
-            onClose={() => setShowEventsModal(false)}
-          />
         )}
       </AnimatePresence>
 

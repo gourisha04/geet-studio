@@ -1,16 +1,17 @@
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import { Instagram } from '../icons/Instagram';
-
-const instagramImages = [
-  'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=400&q=80',
-  'https://images.unsplash.com/photo-1535525153412-5a42439a210d?w=400&q=80',
-  'https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?w=400&q=80',
-  'https://images.unsplash.com/photo-1547153760-18fc86c498c2?w=400&q=80',
-  'https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=400&q=80',
-  'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80',
-];
+import { api } from '../../utils/api';
 
 export default function InstagramFeed() {
+  const [galleryItems, setGalleryItems] = useState([]);
+
+  useEffect(() => {
+    api.get('/api/gallery').then((res) => {
+      if (res?.success && Array.isArray(res.data)) setGalleryItems(res.data.slice(0, 6));
+    }).catch(() => {});
+  }, []);
+
   return (
     <section className="py-20 md:py-32 px-4 md:px-8">
       <div className="max-w-7xl mx-auto text-center mb-12">
@@ -29,9 +30,9 @@ export default function InstagramFeed() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-        {instagramImages.map((img, i) => (
+        {galleryItems.map((item, i) => (
           <motion.a
-            key={i}
+            key={item._id}
             href="https://www.instagram.com/the_geetstudio?igsh=YWE4cWVyNXM4OTFu"
             target="_blank"
             rel="noopener noreferrer"
@@ -41,11 +42,11 @@ export default function InstagramFeed() {
             transition={{ duration: 0.4, delay: i * 0.08 }}
             className="group relative aspect-square overflow-hidden"
           >
-            <img
-              src={img}
-              alt={`Instagram post ${i + 1}`}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
+            {item.mediaType === 'video' ? (
+              <video src={item.mediaUrl} muted playsInline className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+            ) : (
+              <img src={item.mediaUrl} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+            )}
             <div className="absolute inset-0 bg-dark-900/0 group-hover:bg-dark-900/60 transition-all duration-300 flex items-center justify-center">
               <Instagram className="w-6 h-6 text-warm-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
