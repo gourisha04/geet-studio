@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -9,6 +9,9 @@ export default function Login() {
   const { login } = useAuth();
   const { isDark, logo } = useTheme();
   const navigate = useNavigate();
+  // Admin entry point is the same login page reached via /login?role=admin (see the /admin gate).
+  const [searchParams] = useSearchParams();
+  const isAdminLogin = searchParams.get('role') === 'admin';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,7 +26,11 @@ export default function Login() {
     try {
       const user = await login({ email, password });
       if (user.role === 'admin') {
+        // Administrators always continue to the protected dashboard.
         navigate('/admin');
+      } else if (isAdminLogin) {
+        // A Community Member account is never treated as an administrator on the admin entry point.
+        setErrorMsg('This account is not an administrator. Community Members should sign in from the member login page.');
       } else if (user.role === 'lead') {
         navigate('/lead/dashboard');
       } else {
@@ -42,8 +49,10 @@ export default function Login() {
       <div className="max-w-lg w-full px-4">
         <div className="text-center mb-8">
           <img src={logo} alt="Geet Studio" className="h-32 md:h-40 w-auto mx-auto mb-4 object-contain" />
-          <h1 className="font-heading text-3xl font-bold tracking-tight">Portal Sign In</h1>
-          <p className="text-xs md:text-sm text-gold-500/90 font-medium mt-1">Access your Geet Community workspace</p>
+          <h1 className="font-heading text-3xl font-bold tracking-tight">{isAdminLogin ? 'Admin Login' : 'Portal Sign In'}</h1>
+          <p className="text-xs md:text-sm text-gold-500/90 font-medium mt-1">
+            {isAdminLogin ? 'Geet Studio Admin — restricted access' : 'Access your Geet Community workspace'}
+          </p>
         </div>
 
         <motion.div
@@ -111,12 +120,21 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-dark-700/40 text-center text-xs opacity-80">
-            Don’t have an account?{' '}
-            <Link to="/register" className="text-gold-500 font-bold hover:underline">
-              Register Now
-            </Link>
-          </div>
+          {isAdminLogin ? (
+            <div className="mt-8 pt-6 border-t border-dark-700/40 text-center text-xs opacity-80">
+              Community Member?{' '}
+              <Link to="/login" className="text-gold-500 font-bold hover:underline">
+                Member Sign In
+              </Link>
+            </div>
+          ) : (
+            <div className="mt-8 pt-6 border-t border-dark-700/40 text-center text-xs opacity-80">
+              Don’t have an account?{' '}
+              <Link to="/register" className="text-gold-500 font-bold hover:underline">
+                Register Now
+              </Link>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>

@@ -185,7 +185,7 @@ export default function AdminDashboard() {
             Please log in with administrator credentials to access Geet Studio Admin Dashboard.
           </p>
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/login?role=admin')}
             className="w-full py-3 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-widest hover:bg-gold-400 transition-all cursor-pointer shadow-lg"
           >
             Go to Admin Login
@@ -487,7 +487,7 @@ export default function AdminDashboard() {
               <Download className="w-4 h-4" /> Export Analytics
             </button>
             <button
-              onClick={() => { logout(); navigate('/login'); }}
+              onClick={() => { logout(); navigate('/login?role=admin'); }}
               className="flex items-center gap-2 px-4 py-2 border border-red-500/40 text-red-400 hover:bg-red-500/10 text-xs font-semibold uppercase rounded transition-all cursor-pointer"
             >
               <LogOut className="w-4 h-4" /> Logout
