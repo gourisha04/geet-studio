@@ -47,61 +47,30 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (credentials) => {
-    try {
-      const data = await api.post('/api/auth/login', credentials);
-      if (data?.success && data?.user) {
-        setUser(data.user);
-        localStorage.setItem('geet_user', JSON.stringify(data.user));
-        return data.user;
-      }
-      throw new Error(data?.message || 'Login failed');
-    } catch (err) {
-      // Fallback mock for dev when backend is not running
-      if (err.message?.includes('fetch') || err.message?.includes('network') || err.message?.includes('Failed')) {
-        console.warn('⚠️ Backend unreachable, using mock auth');
-        let role = 'lead'; // Default to lead for quick dev mock
-        if (credentials.email?.includes('admin')) role = 'admin';
+    const data = await api.post('/api/auth/login', credentials);
 
-        const mockUser = {
-          _id: 'usr_' + Date.now(),
-          name: credentials.name || credentials.email?.split('@')[0] || 'User',
-          email: credentials.email,
-          role,
-        };
-        setUser(mockUser);
-        localStorage.setItem('geet_user', JSON.stringify(mockUser));
-        return mockUser;
-      }
-      throw err;
+    if (data?.success && data?.user) {
+      setUser(data.user);
+      localStorage.setItem('geet_user', JSON.stringify(data.user));
+      return data.user;
     }
+
+    // Failures propagate to the caller. No client-side session is fabricated, so an unreachable
+    // or rejecting API can never produce a signed-in (let alone admin) session.
+    throw new Error(data?.message || 'Login failed');
   }, []);
 
   const register = useCallback(async (userData) => {
-    try {
-      const data = await api.post('/api/auth/register', userData);
-      if (data?.success && data?.user) {
-        setUser(data.user);
-        localStorage.setItem('geet_user', JSON.stringify(data.user));
-        return data.user;
-      }
-      throw new Error(data?.message || 'Registration failed');
-    } catch (err) {
-      // Fallback mock for dev
-      if (err.message?.includes('fetch') || err.message?.includes('network') || err.message?.includes('Failed')) {
-        console.warn('⚠️ Backend unreachable, using mock registration');
-        const mockUser = {
-          _id: 'usr_' + Date.now(),
-          name: userData.name,
-          email: userData.email,
-          phone: userData.phone,
-          role: userData.role || 'lead',
-        };
-        setUser(mockUser);
-        localStorage.setItem('geet_user', JSON.stringify(mockUser));
-        return mockUser;
-      }
-      throw err;
+    const data = await api.post('/api/auth/register', userData);
+
+    if (data?.success && data?.user) {
+      setUser(data.user);
+      localStorage.setItem('geet_user', JSON.stringify(data.user));
+      return data.user;
     }
+
+    // Failures propagate to the caller — no client-side account is ever fabricated.
+    throw new Error(data?.message || 'Registration failed');
   }, []);
 
   const logout = useCallback(async () => {

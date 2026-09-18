@@ -42,7 +42,7 @@ router.post('/register', async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Public registration for admin role is strictly forbidden.' });
     }
 
-    const cleanEmail = email.toLowerCase();
+    const cleanEmail = String(email).trim().toLowerCase();
 
     // Check duplicate user
     let existingUser = null;
@@ -108,7 +108,7 @@ router.post('/login', async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Email and password are required.' });
     }
 
-    const cleanEmail = email.toLowerCase();
+    const cleanEmail = String(email).trim().toLowerCase();
     let user = null;
 
     try {
@@ -121,22 +121,9 @@ router.post('/login', async (req, res, next) => {
       user = inMemoryUsers.get(cleanEmail);
     }
 
-    // Dev-only convenience fallback. It is disabled in production so the seeded
-    // admin credentials remain the only way to obtain an administrator session.
-    if (!user && process.env.NODE_ENV !== 'production' && cleanEmail.includes('admin')) {
-      if (password === 'password123') {
-        user = {
-          _id: 'admin_id_001',
-          name: 'Geet Studio Admin',
-          email: 'admin@geetstudio.com',
-          phone: '8770409447',
-          role: 'admin',
-          password: await bcrypt.hash('password123', 10),
-        };
-      } else {
-        return res.status(401).json({ success: false, message: 'Invalid credentials.' });
-      }
-    } else if (!user) {
+    // No fallback credentials exist: an administrator session can only be obtained with a
+    // password that verifies against the stored bcrypt hash for an existing account.
+    if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials. User does not exist.' });
     }
 

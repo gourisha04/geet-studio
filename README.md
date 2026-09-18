@@ -98,10 +98,18 @@ ADMIN_EMAIL=geetdancestudio@gmail.com
 
 ## 👤 Creating Admin & Community Lead Accounts
 
-1. Open the app at `/login`.
-2. Click **Admin** under Quick Role Login (Dev) or register with an email containing `admin@geetstudio.com`.
-3. Admin credentials grant full access to `/admin` management modules.
-4. To register as a Community Lead, register at `/register` selecting **Community Lead** or log in with an email containing `lead`.
+1. **Administrator:** provisioned automatically on the backend's first boot from the `ADMIN_EMAIL` +
+   `ADMIN_SEED_PASSWORD` environment variables. The seed is idempotent — an existing administrator's
+   password is never modified or reset.
+2. Sign in at `/login` with those credentials. Admin access grants the `/admin` management modules.
+3. **Rotating the admin password:** run the one-time operator script from the `server/` directory:
+
+   ```bash
+   ADMIN_EMAIL=<admin email> ADMIN_SEED_PASSWORD=<new password> npm run admin:set-password
+   ```
+
+   The password is read from the environment only (never from CLI arguments) and is never logged.
+4. **Community Lead:** register at `/register` selecting **Community Lead**, then sign in at `/login`.
 
 ---
 

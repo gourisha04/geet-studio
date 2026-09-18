@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Lock, Mail, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const { login } = useAuth();
@@ -15,7 +15,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const isDevelopment = import.meta.env.DEV;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,12 +37,6 @@ export default function Login() {
     }
   };
 
-  const fillQuickAuth = (type) => {
-    if (type === 'admin') setEmail('admin@geetstudio.com');
-    else if (type === 'lead') setEmail('lead.artist@geetstudio.com');
-    setPassword('password123');
-  };
-
   return (
     <div className={`pt-32 pb-24 min-h-screen flex items-center justify-center transition-colors ${isDark ? 'bg-dark-950 text-warm-50' : 'bg-warm-50 text-dark-950'}`}>
       <div className="max-w-lg w-full px-4">
@@ -61,22 +54,6 @@ export default function Login() {
           {errorMsg && (
             <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center font-medium">
               {errorMsg}
-            </div>
-          )}
-
-          {isDevelopment && (
-            <div className="mb-6 p-3.5 rounded-xl border border-gold-500/20 bg-gold-500/10 text-xs">
-              <p className="font-bold text-gold-500 mb-2 flex items-center gap-1">
-                <ShieldCheck className="w-4 h-4" /> Quick Role Login (Dev):
-              </p>
-              <div className="flex gap-2">
-                <button onClick={() => fillQuickAuth('lead')} className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-lg text-[11px] font-semibold cursor-pointer hover:bg-purple-500/30 transition-colors">
-                  Member
-                </button>
-                <button onClick={() => fillQuickAuth('admin')} className="px-3 py-1 bg-red-500/20 text-red-400 rounded-lg text-[11px] font-semibold cursor-pointer hover:bg-red-500/30 transition-colors">
-                  Admin
-                </button>
-              </div>
             </div>
           )}
 
@@ -101,11 +78,6 @@ export default function Login() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs uppercase tracking-wider font-semibold opacity-80">PASSWORD *</label>
-                {isDevelopment && (
-                  <button type="button" onClick={() => fillQuickAuth('lead')} className="text-[11px] text-gold-500 hover:underline cursor-pointer">
-                    Forgot your password?
-                  </button>
-                )}
               </div>
               <div className="relative">
                 <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gold-500/70" />
