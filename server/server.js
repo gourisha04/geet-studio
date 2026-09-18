@@ -28,6 +28,15 @@ validateEnv();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Rate limiting is applied per client IP, so Express must be able to see the real visitor
+// address. Managed hosts (Render / Railway) and self-hosted nginx terminate the connection and
+// forward it, so trusting one hop makes req.ip the visitor's address instead of the proxy's.
+// Without this, every visitor shares one rate-limit bucket, which normal traffic exhausts and
+// then blocks everyone. Override with TRUST_PROXY_HOPS (0 = API exposed directly, 2+ = CDN
+// in front of the proxy).
+app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS ?? (isProduction ? 1 : 0)));
 
 // Initialize Database Connection and Admin Seed
 // The admin seed only runs against a live database connection, so a failed
@@ -50,34 +59,80 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser(process.env.COOKIE_SECRET || 'geet_cookie_secret_2026'));
 
+// CORS allow-list. Origins must be listed explicitly — a fallback that accepts anything would let
+// any website issue credentialed requests with a signed-in visitor's session cookie.
+// Configured through the environment (see server/.env.example):
+//   CLIENT_URL            -> primary frontend origin
+//   CORS_ALLOWED_ORIGINS  -> optional extra origins, comma-separated (previews, staging, domains)
+const normalizeOrigin = (value) => String(value).trim().replace(/\/+$/, '');
+
 const allowedOrigins = [
   process.env.CLIENT_URL,
-  'https://geet-studio.vercel.app',
+  process.env.CORS_ALLOWED_ORIGINS,
+  // Defaults so local development and the production Vercel frontend work out of the box.
   'http://localhost:5173',
   'http://localhost:3000',
-].filter(Boolean);
+  'https://geet-studio.vercel.app',
+]
+  .filter(Boolean)
+  .flatMap((value) => String(value).split(','))
+  .map(normalizeOrigin)
+  .filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      // No Origin header (same-origin navigation, curl, server-to-server) is not a CORS request.
+      if (!origin) {
         callback(null, true);
-      } else {
-        callback(null, true);
+        return;
       }
+
+      const requestedOrigin = normalizeOrigin(origin);
+
+      if (allowedOrigins.includes(requestedOrigin)) {
+        callback(null, requestedOrigin);
+        return;
+      }
+
+      // Denied: no CORS headers are emitted, so the browser blocks the response.
+      callback(null, false);
     },
     credentials: true,
   })
 );
 
-const isProduction = process.env.NODE_ENV === 'production';
 const authLoginLimit = isProduction ? 10 : 30;
 const authLoginWindow = 15 * 60 * 1000;
 
+// Visitor page-view telemetry is a public POST that the browser fires automatically on every page
+// load / navigation (sendBeacon), so it needs its own generous bucket. It must never consume the
+// strict write budget below — otherwise normal browsing exhausts it. Still rate-limited.
+const telemetryLimit = 600;
+const telemetryWindow = 15 * 60 * 1000;
+
+// Strict budget for write / mutation traffic (enquiries, enrollments, admin saves, uploads).
+const writeLimit = 200;
+const writeWindow = 15 * 60 * 1000;
+
+// Public reads must never be blocked by the mutation limiter.
+const isReadMethod = (method) => method === 'GET' || method === 'HEAD' || method === 'OPTIONS';
+// Full request path with the query string stripped (`req.path` would be mount-relative here).
+const requestPath = (req) => (req.originalUrl || req.url || '').split('?')[0];
+const isLoginRoute = (req) => requestPath(req) === '/api/auth/login';
+const isTelemetryRoute = (req) => requestPath(req) === '/api/analytics/log';
+
 // Login has its own brute-force limit; session checks and public API traffic do not consume it.
-app.use('/api/auth/login', rateLimiter(authLoginLimit, authLoginWindow));
-app.use('/api', rateLimiter(200, 15 * 60 * 1000, {
-  skip: (req) => req.method === 'GET' || req.path === '/auth/login',
+app.use('/api/auth/login', rateLimiter(authLoginLimit, authLoginWindow, { namespace: 'auth-login' }));
+
+// Public telemetry beacon: separate bucket, so page views never spend the write budget.
+app.use('/api/analytics/log', rateLimiter(telemetryLimit, telemetryWindow, { namespace: 'analytics-telemetry' }));
+
+// All remaining API traffic. GET/HEAD/OPTIONS reads are exempt, so only write / mutation
+// routes consume the strict budget below. Login and telemetry are already counted above.
+app.use('/api', rateLimiter(writeLimit, writeWindow, {
+  namespace: 'api-write',
+  skip: (req) => isReadMethod(req.method) || isLoginRoute(req) || isTelemetryRoute(req),
 }));
 
 // Root Health & Status Route
