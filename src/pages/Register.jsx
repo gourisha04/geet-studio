@@ -187,24 +187,6 @@ export default function Register() {
             </div>
           </motion.div>
 
-          {/* Lead Application Option Layer */}
-          <div className="mt-8 p-6 rounded-2xl border border-gold-500/20 bg-dark-900/60 backdrop-blur-sm text-center space-y-3">
-            <p className="text-xs font-bold text-gold-500 uppercase tracking-widest flex items-center justify-center gap-1.5">
-              <Award className="w-4 h-4" /> Want to represent your category?
-            </p>
-            <p className="text-xs text-dark-200 leading-relaxed max-w-sm mx-auto">
-              Become a verified Community Member and help connect talented professionals with real opportunities.
-            </p>
-            <div>
-              <Link
-                to="/lead/dashboard"
-                className="inline-block px-5 py-2.5 bg-dark-800 border border-gold-500/40 text-gold-500 text-[11px] font-bold uppercase tracking-wider rounded-xl hover:bg-gold-500/10 transition-colors"
-              >
-                APPLY AS COMMUNITY MEMBER →
-              </Link>
-            </div>
-          </div>
-
         </div>
       </div>
     </PageTransition>

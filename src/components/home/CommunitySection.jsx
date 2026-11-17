@@ -97,16 +97,17 @@ export default function CommunitySection({ onReachEnd }) {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2.5">
             {communityCategories.map((cat, i) => (
-              <span
+              <Link
                 key={i}
-                className={`text-xs px-3.5 py-1.5 rounded-full border transition-all duration-300 ${
+                to={`/community?category=${encodeURIComponent(cat)}`}
+                className={`text-xs px-3.5 py-1.5 rounded-full border transition-all duration-300 cursor-pointer ${
                   isDark
                     ? 'bg-dark-800/90 border-dark-600 hover:border-gold-500 hover:text-gold-500'
                     : 'bg-white border-warm-200 shadow-sm hover:border-gold-500 hover:text-gold-600'
                 }`}
               >
                 {cat}
-              </span>
+              </Link>
             ))}
           </div>
         </motion.div>
@@ -135,8 +136,8 @@ export default function CommunitySection({ onReachEnd }) {
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                    <span className="absolute top-3 left-3 px-2.5 py-1 text-[10px] font-bold bg-gold-500 text-dark-950 rounded uppercase tracking-wider">
-                      {lead.category}
+                    <span className="absolute top-3 left-3 px-2.5 py-1 text-[10px] font-bold bg-gold-500 text-dark-950 rounded uppercase tracking-wider shadow-md">
+                      {String(lead.category || 'MEMBER').toUpperCase().endsWith('S') && !String(lead.category).toLowerCase().endsWith('ss') ? String(lead.category).slice(0, -1).toUpperCase() : String(lead.category || 'MEMBER').toUpperCase()}
                     </span>
                     <div className="absolute bottom-3 left-3 right-3 text-white">
                       <h4 className="font-heading text-lg font-bold">{lead.name}</h4>

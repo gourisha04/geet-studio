@@ -105,73 +105,77 @@ export default function ServicesSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`group relative flex flex-col rounded-xl overflow-hidden border transition-all duration-500 hover:-translate-y-1.5 ${
-                  isDark
-                    ? 'bg-dark-800/80 border-dark-700 hover:border-gold-500/50 hover:shadow-xl hover:shadow-gold-500/5'
-                    : 'bg-white border-warm-200 hover:border-gold-500/50 hover:shadow-xl'
-                }`}
+                className="h-full"
               >
-                {/* Image header */}
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={service.image}
-                    alt={service.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  <span className="absolute top-4 right-4 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-gold-500 text-dark-950 rounded">
-                    {service.badge}
-                  </span>
-                  <div className="absolute bottom-4 left-4 flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-lg bg-gold-500/20 backdrop-blur-md flex items-center justify-center text-gold-500">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <h3 className="font-heading text-xl font-bold text-white">
-                      {service.title}
-                    </h3>
-                  </div>
-                </div>
-
-                {/* Content body */}
-                <div className="p-6 flex-1 flex flex-col justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-gold-500 font-semibold mb-2">
-                      {service.subtitle}
-                    </p>
-                    <p className="text-sm opacity-80 mb-4 line-clamp-3">
-                      {service.description}
-                    </p>
-
-                    {/* Offerings Tags */}
-                    <div className="flex flex-wrap gap-1.5 mb-6">
-                      {service.offerings.slice(0, 3).map((item, i) => (
-                        <span
-                          key={i}
-                          className={`text-[11px] px-2 py-0.5 rounded border ${
-                            isDark
-                              ? 'bg-dark-700/60 border-dark-600 opacity-80'
-                              : 'bg-warm-100 border-warm-200 text-dark-800'
-                          }`}
-                        >
-                          {item}
-                        </span>
-                      ))}
-                      {service.offerings.length > 3 && (
-                        <span className="text-[11px] opacity-60 flex items-center">
-                          +{service.offerings.length - 3} more
-                        </span>
-                      )}
+                <Link
+                  to={service.link}
+                  className={`group relative flex flex-col h-full rounded-xl overflow-hidden border transition-all duration-500 hover:-translate-y-1.5 cursor-pointer ${
+                    isDark
+                      ? 'bg-dark-800/80 border-dark-700 hover:border-gold-500/50 hover:shadow-xl hover:shadow-gold-500/5'
+                      : 'bg-white border-warm-200 hover:border-gold-500/50 hover:shadow-xl'
+                  }`}
+                >
+                  {/* Image header */}
+                  <div className="relative h-48 overflow-hidden">
+                    <img
+                      src={service.image}
+                      alt={service.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    <span className="absolute top-4 right-4 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-gold-500 text-dark-950 rounded">
+                      {service.badge}
+                    </span>
+                    <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-lg bg-gold-500/20 backdrop-blur-md flex items-center justify-center text-gold-500">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <h3 className="font-heading text-xl font-bold text-white">
+                        {service.title}
+                      </h3>
                     </div>
                   </div>
 
-                  <Link
-                    to={service.link}
-                    className="inline-flex items-center justify-between w-full pt-4 border-t border-dark-700/40 text-xs font-semibold uppercase tracking-wider text-gold-500 group-hover:text-gold-400 transition-colors"
-                  >
-                    <span>Explore {service.title}</span>
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
-                </div>
+                  {/* Content body */}
+                  <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-gold-500 font-semibold mb-2">
+                        {service.subtitle}
+                      </p>
+                      <p className="text-sm opacity-80 mb-4 line-clamp-3">
+                        {service.description}
+                      </p>
+
+                      {/* Offerings Tags */}
+                      <div className="flex flex-wrap gap-1.5 mb-6">
+                        {service.offerings.slice(0, 3).map((item, i) => (
+                          <span
+                            key={i}
+                            className={`text-[11px] px-2 py-0.5 rounded border ${
+                              isDark
+                                ? 'bg-dark-700/60 border-dark-600 opacity-80'
+                                : 'bg-warm-100 border-warm-200 text-dark-800'
+                            }`}
+                          >
+                            {item}
+                          </span>
+                        ))}
+                        {service.offerings.length > 3 && (
+                          <span className="text-[11px] opacity-60 flex items-center">
+                            +{service.offerings.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      className="inline-flex items-center justify-between w-full pt-4 border-t border-dark-700/40 text-xs font-semibold uppercase tracking-wider text-gold-500 group-hover:text-gold-400 transition-colors"
+                    >
+                      <span>Explore {service.title}</span>
+                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    </div>
+                  </div>
+                </Link>
               </motion.div>
             );
           })}

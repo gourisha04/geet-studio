@@ -17,4 +17,13 @@ export const galleryImages = [
   { id: 16, src: 'https://images.unsplash.com/photo-1537365587684-f490102e1225?w=600&q=80', alt: 'Performance rehearsal', category: 'performances' },
 ];
 
-export const galleryCategories = ['all', 'events', 'workshops', 'classes', 'performances'];
+export const galleryCategories = [
+  'all',
+  'dance',
+  'music',
+  'fitness',
+  'events',
+  'workshops',
+  'classes',
+  'performances',
+];

@@ -1,6 +1,7 @@
 import express from 'express';
 import Class from '../models/Class.js';
 import Event from '../models/Event.js';
+import EventRegistration from '../models/EventRegistration.js';
 import Enrollment from '../models/Enrollment.js';
 import CommunityLead from '../models/CommunityLead.js';
 import CommunityAccessRequest from '../models/CommunityAccessRequest.js';
@@ -25,6 +26,8 @@ router.get('/dashboard', async (req, res, next) => {
       upcomingEventsCount,
       totalEnrollmentsCount,
       newRequestsCount,
+      totalEventRegistrationsCount,
+      newEventRegistrationsCount,
       approvedMembersCount,
       pendingLeadsCount,
       accessRequestsCount,
@@ -37,6 +40,8 @@ router.get('/dashboard', async (req, res, next) => {
       Event.countDocuments({ status: 'UPCOMING' }).catch(() => 0),
       Enrollment.countDocuments().catch(() => 0),
       Enrollment.countDocuments({ requestStatus: 'NEW' }).catch(() => 0),
+      EventRegistration.countDocuments().catch(() => 0),
+      EventRegistration.countDocuments({ status: 'NEW' }).catch(() => 0),
       CommunityLead.countDocuments({ status: 'APPROVED' }).catch(() => 0),
       CommunityLead.countDocuments({ status: 'PENDING' }).catch(() => 0),
       CommunityAccessRequest.countDocuments().catch(() => 0),
@@ -56,6 +61,8 @@ router.get('/dashboard', async (req, res, next) => {
         upcomingEvents: upcomingEventsCount,
         totalEnrollments: totalEnrollmentsCount,
         newEnrollmentRequests: newRequestsCount,
+        totalEventRegistrations: totalEventRegistrationsCount,
+        newEventRegistrations: newEventRegistrationsCount,
         communityMembers: approvedMembersCount,
         pendingCommunityProfiles: pendingLeadsCount,
         accessRequests: accessRequestsCount,

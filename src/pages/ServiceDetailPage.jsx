@@ -34,13 +34,13 @@ From your first step to the spotlight, we’re here to build dancers who don’t
       { title: '✨ More Than Just Steps', desc: 'We don’t just teach choreography. We help you understand the music, own the movement, and find your expression.' },
     ],
     classes: [
-      { id: 'c-dance-1', numLabel: '01 — Bollywood', name: 'Bollywood Foundations', instructor: 'Priya Sharma', schedule: 'Mon, Wed, Fri', time: '6:00 PM - 7:00 PM', level: 'Beginner', price: '₹3,000 / mo', image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80', desc: 'Build your foundation in Bollywood movement, expressions, musicality, and performance.' },
-      { id: 'c-dance-2', numLabel: '02 — Hip-Hop', name: 'Hip-Hop Foundations & Grooves', instructor: 'Arjun Mehra', schedule: 'Tue, Thu, Sat', time: '7:00 PM - 8:00 PM', level: 'Beginner - Intermediate', price: '₹2,500 / mo', image: 'https://images.unsplash.com/photo-1535525153412-5a42439a210d?w=600&q=80', desc: 'Build rhythm, groove, musicality, and foundational hip-hop vocabulary through structured training.' },
-      { id: 'c-dance-3', numLabel: '03 — Contemporary', name: 'Contemporary Flow & Floorwork', instructor: 'Meera Joshi', schedule: 'Mon, Wed', time: '5:00 PM - 6:30 PM', level: 'Intermediate', price: '₹4,000 / 6 wks', image: 'https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?w=600&q=80', desc: 'Explore fluid movement, floorwork, musicality, improvisation, and the emotional side of contemporary dance.' },
+      { id: 'c-dance-1', numLabel: '01 — Bollywood', name: 'Bollywood Foundations', instructor: 'Arpit Mahor', schedule: 'Mon, Wed, Fri', time: '6:00 PM - 7:00 PM', level: 'Beginner', price: '₹3,000 / mo', image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80', desc: 'Build your foundation in Bollywood movement, expressions, musicality, and performance.' },
+      { id: 'c-dance-2', numLabel: '02 — Hip-Hop', name: 'Hip-Hop Foundations & Grooves', instructor: 'Arpit Mahor', schedule: 'Tue, Thu, Sat', time: '7:00 PM - 8:00 PM', level: 'Beginner - Intermediate', price: '₹2,500 / mo', image: 'https://images.unsplash.com/photo-1535525153412-5a42439a210d?w=600&q=80', desc: 'Build rhythm, groove, musicality, and foundational hip-hop vocabulary through structured training.' },
+      { id: 'c-dance-3', numLabel: '03 — Contemporary', name: 'Contemporary Flow & Floorwork', instructor: 'Arpit Mahor', schedule: 'Mon, Wed', time: '5:00 PM - 6:30 PM', level: 'Intermediate', price: '₹4,000 / 6 wks', image: 'https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?w=600&q=80', desc: 'Explore fluid movement, floorwork, musicality, improvisation, and the emotional side of contemporary dance.' },
     ],
     workshops: [
-      { id: 'w-dance-1', name: 'Bollywood Masterclass Intensive', instructor: 'Celebrity Guest Choreographer', date: '28 August 2026', time: '4:00 PM - 7:00 PM', price: '₹1,500', mode: 'Offline Studio', image: 'https://images.unsplash.com/photo-1547153760-18fc86324498?w=600&q=80', desc: '3-hour power masterclass focused on commercial stage presentation & expressions.' },
-      { id: 'w-dance-2', name: 'Urban Hip-Hop Battle Bootcamp', instructor: 'Rohan (Crew Lead)', date: '05 September 2026', time: '5:00 PM - 8:00 PM', price: '₹1,200', mode: 'Offline Studio', image: 'https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=600&q=80', desc: 'Freestyle battle preparation, musicality drills, and cypher confidence.' },
+      { id: 'w-dance-1', name: 'Bollywood Masterclass Intensive', instructor: 'Arpit Mahor', date: '28 August 2026', time: '4:00 PM - 7:00 PM', price: '₹1,500', mode: 'Offline Studio', image: 'https://images.unsplash.com/photo-1547153760-18fc86324498?w=600&q=80', desc: '3-hour power masterclass focused on commercial stage presentation & expressions.' },
+      { id: 'w-dance-2', name: 'Urban Hip-Hop Battle Bootcamp', instructor: 'Arpit Mahor', date: '05 September 2026', time: '5:00 PM - 8:00 PM', price: '₹1,200', mode: 'Offline Studio', image: 'https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=600&q=80', desc: 'Freestyle battle preparation, musicality drills, and cypher confidence.' },
     ],
     pastWorks: [
       { title: 'Geet Studio Annual Dance Fest 2025', year: '2025', image: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800&q=80', tag: 'Stage Show' },
@@ -66,11 +66,11 @@ Because the goal isn’t simply to sing or play better. It’s to have something
     ctaButtonText: 'EXPLORE ALL CLASSES →',
     highlights: ['Certified vocal coaches & instrumental faculty', 'Small batch sizes for maximum personal feedback', 'Monthly Unplugged Jam Recitals', 'In-house recording studio access for students', 'Mic technique & stage presence training', 'Preparation for Trinity & Gandharva Music Exams'],
     classes: [
-      { id: 'c-music-1', numLabel: '01 — Vocals', name: 'Hindustani & Contemporary Vocals', instructor: 'Pt. Alok Sharma', schedule: 'Tue, Thu, Sat', time: '5:30 PM - 6:30 PM', level: 'All Levels', price: '₹3,500 / mo', image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&q=80', desc: 'Build your voice from the foundation — sur, taal, breath control, expression, and the art of singing with intention.' },
-      { id: 'c-music-2', numLabel: '02 — Guitar', name: 'Acoustic Guitar Foundations', instructor: 'Kabir Das', schedule: 'Mon, Wed, Fri', time: '6:30 PM - 7:30 PM', level: 'Beginner', price: '₹3,000 / mo', image: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600&q=80', desc: 'Learn chords, rhythm, strumming, basic music theory, and the confidence to play the songs you love.' },
+      { id: 'c-music-1', numLabel: '01 — Vocals', name: 'Hindustani & Contemporary Vocals', instructor: 'Arpit Mahor', schedule: 'Tue, Thu, Sat', time: '5:30 PM - 6:30 PM', level: 'All Levels', price: '₹3,500 / mo', image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&q=80', desc: 'Build your voice from the foundation — sur, taal, breath control, expression, and the art of singing with intention.' },
+      { id: 'c-music-2', numLabel: '02 — Guitar', name: 'Acoustic Guitar Foundations', instructor: 'Arpit Mahor', schedule: 'Mon, Wed, Fri', time: '6:30 PM - 7:30 PM', level: 'Beginner', price: '₹3,000 / mo', image: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600&q=80', desc: 'Learn chords, rhythm, strumming, basic music theory, and the confidence to play the songs you love.' },
     ],
     workshops: [
-      { id: 'w-music-1', name: 'Sufi & Semi-Classical Vocal Jam', instructor: 'Alok Vocal Studio', date: '30 August 2026', time: '5:00 PM - 7:30 PM', price: '₹1,000', mode: 'Offline Studio', image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&q=80', desc: 'Immersive 2.5 hour vocal workshop exploring Sufi soul & acoustic arrangements.' },
+      { id: 'w-music-1', name: 'Sufi & Semi-Classical Vocal Jam', instructor: 'Arpit Mahor', date: '30 August 2026', time: '5:00 PM - 7:30 PM', price: '₹1,000', mode: 'Offline Studio', image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&q=80', desc: 'Immersive 2.5 hour vocal workshop exploring Sufi soul & acoustic arrangements.' },
     ],
     pastWorks: [
       { title: 'Geet Studio Acoustic Unplugged Night', year: '2025', image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80', tag: 'Live Concert' },
@@ -95,13 +95,13 @@ Fitness at Geet Studio is about building a body you can live, dance, play, perfo
     ctaButtonText: 'EXPLORE ALL CLASSES →',
     highlights: ['No prior dance or fitness experience needed', 'Burn 400 - 800 calories per 60-min batch', 'Morning & Evening flexible timing options', 'Licensed Zumba & fitness certified trainers', 'Energizing light setup & acoustic sound system', 'Inclusive, high-energy community environment'],
     classes: [
-      { id: 'c-fit-1', numLabel: '01 — Zumba', name: 'Morning Power Zumba', instructor: 'Simran Kaur', schedule: 'Mon to Fri (5 Days)', time: '7:00 AM - 8:00 AM', level: 'All Levels', price: '₹2,500 / mo', image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80', desc: 'Start your day with energetic dance-based cardio, rhythm, and a full-body workout.' },
-      { id: 'c-fit-2', numLabel: '02 — Aerobics', name: 'Evening Dance Aerobics', instructor: 'Neha Verma', schedule: 'Mon, Wed, Fri', time: '6:30 PM - 7:30 PM', level: 'All Levels', price: '₹2,200 / mo', image: 'https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?w=600&q=80', desc: 'High-energy cardio through dance, music, and movement. Fitness that doesn’t feel like punishment.' },
-      { id: 'c-fit-3', numLabel: '03 — Yoga', name: 'Yoga & Mobility', instructor: 'Ananya Sharma', schedule: 'Tue, Thu, Sat', time: '6:00 AM - 7:00 AM', level: 'All Levels', price: '₹2,800 / mo', image: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=600&q=80', desc: 'Build flexibility, balance, mobility, and body awareness through mindful movement and breath.' },
-      { id: 'c-fit-4', numLabel: '04 — Aerial', name: 'Aerial Fitness', instructor: 'Rohan Verma', schedule: 'Sat, Sun', time: '8:00 AM - 9:30 AM', level: 'All Levels', price: '₹3,500 / mo', image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80', desc: 'Build strength, control, flexibility, and confidence through movement in the air.' },
+      { id: 'c-fit-1', numLabel: '01 — Zumba', name: 'Morning Power Zumba', instructor: 'Arpit Mahor', schedule: 'Mon to Fri (5 Days)', time: '7:00 AM - 8:00 AM', level: 'All Levels', price: '₹2,500 / mo', image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80', desc: 'Start your day with energetic dance-based cardio, rhythm, and a full-body workout.' },
+      { id: 'c-fit-2', numLabel: '02 — Aerobics', name: 'Evening Dance Aerobics', instructor: 'Arpit Mahor', schedule: 'Mon, Wed, Fri', time: '6:30 PM - 7:30 PM', level: 'All Levels', price: '₹2,200 / mo', image: 'https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?w=600&q=80', desc: 'High-energy cardio through dance, music, and movement. Fitness that doesn’t feel like punishment.' },
+      { id: 'c-fit-3', numLabel: '03 — Yoga', name: 'Yoga & Mobility', instructor: 'Arpit Mahor', schedule: 'Tue, Thu, Sat', time: '6:00 AM - 7:00 AM', level: 'All Levels', price: '₹2,800 / mo', image: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=600&q=80', desc: 'Build flexibility, balance, mobility, and body awareness through mindful movement and breath.' },
+      { id: 'c-fit-4', numLabel: '04 — Aerial', name: 'Aerial Fitness', instructor: 'Arpit Mahor', schedule: 'Sat, Sun', time: '8:00 AM - 9:30 AM', level: 'All Levels', price: '₹3,500 / mo', image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80', desc: 'Build strength, control, flexibility, and confidence through movement in the air.' },
     ],
     workshops: [
-      { id: 'w-fit-1', name: 'Sunday Morning Zumba Marathon', instructor: 'Simran & Crew', date: '06 September 2026', time: '7:30 AM - 9:30 AM', price: '₹500', mode: 'Outdoor Garden / Studio', image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80', desc: '2-hour non-stop cardio workout party with guest fitness instructors.' },
+      { id: 'w-fit-1', name: 'Sunday Morning Zumba Marathon', instructor: 'Arpit Mahor', date: '06 September 2026', time: '7:30 AM - 9:30 AM', price: '₹500', mode: 'Outdoor Garden / Studio', image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80', desc: '2-hour non-stop cardio workout party with guest fitness instructors.' },
     ],
     pastWorks: [
       { title: 'Indore Open Air Fitness Fest', year: '2025', image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80', tag: 'Fitness Event' },
@@ -135,11 +135,11 @@ Fitness at Geet Studio is about building a body you can live, dance, play, perfo
     ],
     highlights: ['200+ successful weddings & corporate galas delivered', 'Dedicated rehearsal venue or doorstep doorstep choreography', 'Professional backup dance troupe with costume inventory', 'Custom DJ sound mixing & audio editing included', 'Pan-India event management and travel team', 'Experienced stage managers ensuring zero backstage delay'],
     classes: [
-      { id: 'c-evt-1', name: 'Wedding Sangeet Choreography Package', instructor: 'Senior Lead Choreographers', schedule: 'Flexible Rehearsal Dates', time: 'Custom Slot', level: 'Custom for All Ages', price: 'Custom Quote', image: 'https://images.unsplash.com/photo-1469488865564-c2de10f69f96?w=600&q=80', desc: 'Complete Sangeet package including family acts, couple dance, entry & finale.' },
-      { id: 'c-evt-2', name: 'Corporate Annual Day Production', instructor: 'Production Team', schedule: 'Project Based', time: 'Flexible', level: 'Professional Troupe & Employee Acts', price: 'Custom Quote', image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&q=80', desc: 'End-to-end employee choreography & professional troupe performance for corporate galas.' },
+      { id: 'c-evt-1', name: 'Wedding Sangeet Choreography Package', instructor: 'Arpit Mahor', schedule: 'Flexible Rehearsal Dates', time: 'Custom Slot', level: 'Custom for All Ages', price: 'Custom Quote', image: 'https://images.unsplash.com/photo-1469488865564-c2de10f69f96?w=600&q=80', desc: 'Complete Sangeet package including family acts, couple dance, entry & finale.' },
+      { id: 'c-evt-2', name: 'Corporate Annual Day Production', instructor: 'Arpit Mahor', schedule: 'Project Based', time: 'Flexible', level: 'Professional Troupe & Employee Acts', price: 'Custom Quote', image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&q=80', desc: 'End-to-end employee choreography & professional troupe performance for corporate galas.' },
     ],
     workshops: [
-      { id: 'w-evt-1', name: 'Sangeet Couple Express Bootcamp', instructor: 'Priya & Lead Team', date: 'Flexible Weekend', time: '3 Hours Intensive', price: '₹3,500 / couple', mode: 'Private Studio', image: 'https://images.unsplash.com/photo-1469488865564-c2de10f69f96?w=600&q=80', desc: 'Rapid 3-hour intensive session to master 2 complete couple dance routines.' },
+      { id: 'w-evt-1', name: 'Sangeet Couple Express Bootcamp', instructor: 'Arpit Mahor', date: 'Flexible Weekend', time: '3 Hours Intensive', price: '₹3,500 / couple', mode: 'Private Studio', image: 'https://images.unsplash.com/photo-1469488865564-c2de10f69f96?w=600&q=80', desc: 'Rapid 3-hour intensive session to master 2 complete couple dance routines.' },
     ],
     pastWorks: [
       { title: 'Royal Indore Wedding Sangeet Gala', year: '2025', image: 'https://images.unsplash.com/photo-1469488865564-c2de10f69f96?w=800&q=80', tag: 'Sangeet' },
@@ -152,43 +152,124 @@ export default function ServiceDetailPage() {
   const { id } = useParams();
   const { isDark } = useTheme();
   const [service, setService] = useState(null);
+  const [quoteModal, setQuoteModal] = useState(false);
+  const [quoteSent, setQuoteSent] = useState(false);
+  const [quoteForm, setQuoteForm] = useState({ name: '', email: '', phone: '', message: '' });
+  const [registerModal, setRegisterModal] = useState(null);
+  const [registerSuccess, setRegisterSuccess] = useState(false);
+  const [registerForm, setRegisterForm] = useState({ name: '', email: '', phone: '' });
 
   useEffect(() => {
     let cancelled = false;
+
+    const fallbackKey = Object.keys(servicesData).find(
+      (k) => k === id || (id && id.toLowerCase().includes(k))
+    ) || (id && id.toLowerCase().includes('event') ? 'events-productions' : null);
+
+    const defaultFallback = fallbackKey ? servicesData[fallbackKey] : servicesData['dance'];
+
     api.get('/api/services')
       .then((res) => {
-        const record = res?.data?.find((item) => item._id === id || item.slug === id);
-        if (!cancelled && res?.success && record) {
+        if (cancelled) return;
+        let record = null;
+        if (res?.success && Array.isArray(res.data)) {
+          record = res.data.find((item) => {
+            const itemSlug = (item.slug || '').toLowerCase();
+            const itemTitle = (item.title || '').toLowerCase();
+            const itemId = String(item._id || item.id);
+            const targetId = String(id || '').toLowerCase();
+
+            return (
+              itemId === targetId ||
+              itemSlug === targetId ||
+              (itemSlug && targetId.includes(itemSlug)) ||
+              (itemSlug && itemSlug.includes(targetId)) ||
+              (itemTitle && itemTitle.includes(targetId)) ||
+              (itemTitle && targetId.includes(itemTitle))
+            );
+          });
+        }
+
+        if (record) {
           setService({
             ...record,
-            category: record.category || 'Studio Service',
-            description: record.description || 'Professional studio service at Geet Studio.',
-            longDescription: record.longDescription || record.description || 'Professional studio service at Geet Studio.',
-            image: record.media?.url || 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1200&q=80',
-            icon: Sparkles,
+            category: record.category || defaultFallback?.category || 'Studio Service',
+            description: record.description || defaultFallback?.description || 'Professional studio service at Geet Studio.',
+            longDescription: record.longDescription || defaultFallback?.longDescription || record.description || 'Professional studio service at Geet Studio.',
+            image: record.media?.url || record.image || defaultFallback?.image || 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1200&q=80',
+            icon: (record.title || '').toLowerCase().includes('music')
+              ? Music
+              : (record.title || '').toLowerCase().includes('fitness')
+                ? Flame
+                : (record.title || '').toLowerCase().includes('event')
+                  ? Trophy
+                  : Sparkles,
             offerings: (record.offerings || []).map((offering) => ({
               ...offering,
               desc: offering.description || offering.desc || '',
             })),
-            classes: [],
-            workshops: [],
-            highlights: [],
-            pastWorks: [],
+            highlights: record.highlights && record.highlights.length > 0 ? record.highlights : (defaultFallback?.highlights || []),
+            blogArticle: record.blogArticle || defaultFallback?.blogArticle || null,
           });
+        } else {
+          setService(defaultFallback);
         }
       })
       .catch(() => {
-        if (!cancelled) setService(null);
+        if (!cancelled) setService(defaultFallback);
       });
+
     return () => { cancelled = true; };
   }, [id]);
 
-  const [quoteModal, setQuoteModal] = useState(false);
-  const [quoteSent, setQuoteSent] = useState(false);
-  const [quoteForm, setQuoteForm] = useState({ name: '', email: '', phone: '', eventType: 'Wedding Choreography', eventDate: '', message: '' });
-  const [registerModal, setRegisterModal] = useState(null);
-  const [registerForm, setRegisterForm] = useState({ name: '', email: '', phone: '', note: '' });
-  const [registerSuccess, setRegisterSuccess] = useState(false);
+  const [recentClasses, setRecentClasses] = useState([]);
+  const [serviceGallery, setServiceGallery] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!service) return;
+
+    // Fetch classes
+    api.get('/api/classes')
+      .then((res) => {
+        if (!cancelled && res?.success && Array.isArray(res.data)) {
+          const sTitle = (service.title || '').toLowerCase();
+          const filtered = res.data.filter((cls) => {
+            const cat = (cls.category || '').toLowerCase();
+            const type = (cls.type || '').toLowerCase();
+            const name = (cls.name || '').toLowerCase();
+            if (sTitle.includes('dance')) return cat.includes('dance') || type.includes('dance') || name.includes('dance') || (!cat.includes('music') && !cat.includes('fitness'));
+            if (sTitle.includes('music')) return cat.includes('music') || type.includes('music') || name.includes('music');
+            if (sTitle.includes('fitness')) return cat.includes('fitness') || type.includes('fitness') || name.includes('fitness');
+            if (sTitle.includes('event')) return cat.includes('event') || type.includes('event') || name.includes('event');
+            return true;
+          });
+          setRecentClasses(filtered.slice(0, 3));
+        }
+      })
+      .catch(() => {});
+
+    // Fetch gallery items for this service
+    api.get('/api/gallery')
+      .then((res) => {
+        if (!cancelled && res?.success && Array.isArray(res.data)) {
+          const sTitle = (service.title || '').toLowerCase();
+          const filtered = res.data.filter((item) => {
+            const cat = (item.category || '').toLowerCase();
+            const title = (item.title || '').toLowerCase();
+            if (sTitle.includes('dance')) return cat.includes('dance') || title.includes('dance');
+            if (sTitle.includes('music')) return cat.includes('music') || title.includes('music');
+            if (sTitle.includes('fitness')) return cat.includes('fitness') || title.includes('fitness');
+            if (sTitle.includes('event')) return cat.includes('event') || title.includes('event');
+            return true;
+          });
+          setServiceGallery(filtered.length > 0 ? filtered.slice(0, 6) : res.data.slice(0, 6));
+        }
+      })
+      .catch(() => {});
+
+    return () => { cancelled = true; };
+  }, [service]);
 
   if (!service) {
     return (
@@ -250,21 +331,44 @@ export default function ServiceDetailPage() {
             </motion.div>
           )}
 
-          {service.offerings && service.offerings.length > 0 && (
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-              <p className="text-xs tracking-[0.3em] uppercase text-gold-500 font-semibold mb-3">Disciplines & Modules</p>
-              <h3 className="font-heading text-3xl font-bold mb-8">Key Programs & <span className="text-gold-500 font-light italic">Offerings</span></h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {service.offerings.map((off, i) => (
-                  <div key={i} className={`p-6 rounded-2xl border transition-all duration-300 hover:-translate-y-1 ${isDark ? 'bg-dark-900 border-dark-700 hover:border-gold-500/50' : 'bg-white border-warm-200 shadow-md hover:border-gold-500/50'}`}>
-                    <div className="w-10 h-10 rounded-xl bg-gold-500/10 flex items-center justify-center text-gold-500 mb-4"><Icon className="w-5 h-5" /></div>
-                    <h4 className="font-heading text-lg font-bold text-gold-500 mb-2">{off.name}</h4>
-                    <p className={`text-sm leading-relaxed ${isDark ? 'opacity-80' : 'opacity-75'}`}>{off.desc}</p>
+          {/* Key Programs & Offerings — Fetch Recent 3 Class Cards */}
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <p className="text-xs tracking-[0.3em] uppercase text-gold-500 font-semibold mb-3">RECENT PROGRAMS</p>
+            <h3 className="font-heading text-3xl font-bold mb-8">Key Programs & <span className="text-gold-500 font-light italic">Offerings</span></h3>
+            {recentClasses.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {recentClasses.map((c) => (
+                  <div key={c._id || c.id} className={`rounded-2xl overflow-hidden border flex flex-col justify-between ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-lg'}`}>
+                    <div>
+                      <div className="h-48 relative overflow-hidden">
+                        <img src={(Array.isArray(c.images) && c.images[0]?.url) ? c.images[0].url : (c.image || 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=600&q=80')} alt={c.name} className="w-full h-full object-cover" />
+                        <span className="absolute top-3 right-3 px-3 py-1 bg-gold-500 text-dark-950 font-bold text-[10px] uppercase rounded">{c.danceStyle || c.category || 'Class'}</span>
+                      </div>
+                      <div className="p-6 space-y-3">
+                        <h4 className="font-heading text-xl font-bold text-gold-500">{c.name}</h4>
+                        <p className="text-xs opacity-75 line-clamp-2 leading-relaxed">{c.description}</p>
+                        <div className="space-y-1 text-xs opacity-80 pt-1">
+                          <p className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-gold-500" /> Instructor: {c.instructor || 'Arpit Mahor'}</p>
+                          <p className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-gold-500" /> {c.classTiming || c.time || '6:00 PM'}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-6 pt-0">
+                      <div className="pt-4 border-t border-dark-700/50 flex items-center justify-between">
+                        <span className="text-sm font-bold text-gold-500">₹{c.fees || 3000}</span>
+                        <Link to={`/classes/${c._id || c.id}`} className="px-4 py-2 bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-wider hover:bg-gold-400 transition-all cursor-pointer rounded flex items-center gap-1">JOIN CLASS <ArrowRight className="w-3.5 h-3.5" /></Link>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
-            </motion.div>
-          )}
+            ) : (
+              <div className="p-8 text-center border border-dashed border-dark-700 rounded-2xl opacity-75">
+                <p className="text-sm">Explore our active classes in this department on the Classes page.</p>
+                <Link to="/classes" className="inline-block mt-3 px-6 py-2.5 bg-gold-500 text-dark-950 font-bold text-xs uppercase">View All Classes</Link>
+              </div>
+            )}
+          </motion.div>
 
           {service.classes && service.classes.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -377,6 +481,34 @@ export default function ServiceDetailPage() {
               ))}
             </div>
           </motion.div>
+
+          {/* Gallery Media Filtered for this Service */}
+          {serviceGallery.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <p className="text-xs tracking-[0.3em] uppercase text-gold-500 font-semibold mb-1">STUDIO MEDIA & GALLERY</p>
+                  <h3 className="font-heading text-2xl md:text-3xl font-bold">{service.title} <span className="text-gold-500 font-light italic">In Action</span></h3>
+                </div>
+                <Link to="/gallery" className="text-xs uppercase font-bold text-gold-500 flex items-center gap-1 hover:text-gold-400">View Full Gallery <ArrowRight className="w-4 h-4" /></Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {serviceGallery.map((item, idx) => (
+                  <div key={item._id || item.id || idx} className="group relative h-56 rounded-2xl overflow-hidden border border-dark-700 shadow-md">
+                    {item.mediaType === 'video' ? (
+                      <video src={item.mediaUrl} controls className="w-full h-full object-cover" />
+                    ) : (
+                      <img src={item.mediaUrl || item.src} alt={item.title || item.alt} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-4 flex flex-col justify-end pointer-events-none">
+                      <span className="text-xs font-bold text-white line-clamp-1">{item.title || item.alt}</span>
+                      <span className="text-[10px] text-gold-400 uppercase tracking-widest">{service.title} Gallery</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className={`p-8 md:p-12 rounded-3xl border text-center ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-xl'}`}>
             <h3 className="font-heading text-2xl md:text-4xl font-bold mb-3">{service.bannerTitle ? service.bannerTitle : <>Ready to Master <span className="text-gold-500">{service.title}</span>?</>}</h3>

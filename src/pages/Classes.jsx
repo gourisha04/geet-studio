@@ -16,13 +16,12 @@ const mainCategories = [
   { id: 'Events & Productions', label: 'Events & Productions', icon: Sparkles },
 ];
 
-const danceStyles = ['ALL STYLES', 'Bollywood', 'Hip-Hop', 'Contemporary', 'Salsa', 'Kathak Fusion', 'Freestyle', 'Semi-Classical', 'Classical', 'Heels', 'Choreography'];
 const levelOptions = ['ALL LEVELS', 'Beginner', 'Intermediate'];
 
 export default function Classes() {
   const { isDark } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState('ALL');
-  const [selectedStyle, setSelectedStyle] = useState('ALL STYLES');
+  const [selectedStyle, setSelectedStyle] = useState('ALL');
   const [selectedLevel, setSelectedLevel] = useState('ALL LEVELS');
   const [searchQuery, setSearchQuery] = useState('');
   const [classRecords, setClassRecords] = useState([]);
@@ -39,21 +38,57 @@ export default function Classes() {
     return () => { cancelled = true; };
   }, []);
 
+  // Dynamic subtype options per category
+  const categorySubtypes = useMemo(() => {
+    if (selectedCategory === 'Dance') {
+      const presets = ['ALL', 'Bollywood', 'Hip-Hop', 'Contemporary', 'Salsa', 'Kathak Fusion', 'Freestyle', 'Semi-Classical', 'Classical', 'Heels', 'Choreography'];
+      const dynamic = classRecords.filter((c) => c.category === 'Dance').map((c) => c.danceStyle || c.subtype).filter(Boolean);
+      return Array.from(new Set([...presets, ...dynamic]));
+    }
+    if (selectedCategory === 'Music') {
+      const presets = ['ALL', 'Vocals', 'Guitar', 'Keyboard & Piano', 'Drums & Percussion', 'Classical Indian', 'Western Music'];
+      const dynamic = classRecords.filter((c) => c.category === 'Music').map((c) => c.musicType || c.subtype).filter(Boolean);
+      return Array.from(new Set([...presets, ...dynamic]));
+    }
+    if (selectedCategory === 'Fitness') {
+      const presets = ['ALL', 'Zumba', 'Dance Aerobics', 'Yoga & Mobility', 'CrossFit & Conditioning', 'Pilates'];
+      const dynamic = classRecords.filter((c) => c.category === 'Fitness').map((c) => c.fitnessType || c.subtype).filter(Boolean);
+      return Array.from(new Set([...presets, ...dynamic]));
+    }
+    if (selectedCategory === 'Events & Productions') {
+      const presets = ['ALL', 'Stage Production', 'Wedding Choreography', 'Corporate Showcase', 'Flashmob', 'Competition Training'];
+      const dynamic = classRecords.filter((c) => c.category === 'Events & Productions').map((c) => c.productionType || c.subtype).filter(Boolean);
+      return Array.from(new Set([...presets, ...dynamic]));
+    }
+    return ['ALL', 'Bollywood', 'Hip-Hop', 'Contemporary', 'Vocals', 'Zumba', 'Wedding Choreography'];
+  }, [selectedCategory, classRecords]);
+
   const filteredClasses = useMemo(() => {
     return classRecords.filter((item) => {
       // Main category matching
       if (selectedCategory !== 'ALL' && item.category !== selectedCategory) {
-        // Fallback for older items missing category field
         if (selectedCategory === 'Dance' && item.category && item.category !== 'Dance') return false;
         if (selectedCategory === 'Music' && item.category !== 'Music') return false;
         if (selectedCategory === 'Fitness' && item.category !== 'Fitness') return false;
         if (selectedCategory === 'Events & Productions' && item.category !== 'Events & Productions') return false;
       }
 
-      // Specific style/subtype filter
-      if (selectedStyle !== 'ALL STYLES' && selectedStyle !== 'ALL SUBTYPES') {
-        const itemSubtype = (item.subtype || item.danceStyle || item.musicType || item.fitnessType || item.productionType || item.style || '').toLowerCase();
-        if (!itemSubtype.includes(selectedStyle.toLowerCase())) {
+      // Specific dynamic subtype filter
+      if (selectedStyle !== 'ALL') {
+        const target = selectedStyle.toLowerCase();
+        let itemSubtype = '';
+        if (selectedCategory === 'Dance') {
+          itemSubtype = (item.danceStyle || item.subtype || item.style || '').toLowerCase();
+        } else if (selectedCategory === 'Music') {
+          itemSubtype = (item.musicType || item.subtype || item.style || '').toLowerCase();
+        } else if (selectedCategory === 'Fitness') {
+          itemSubtype = (item.fitnessType || item.subtype || item.style || '').toLowerCase();
+        } else if (selectedCategory === 'Events & Productions') {
+          itemSubtype = (item.productionType || item.subtype || item.style || '').toLowerCase();
+        } else {
+          itemSubtype = (item.subtype || item.danceStyle || item.musicType || item.fitnessType || item.productionType || item.style || '').toLowerCase();
+        }
+        if (!itemSubtype.includes(target)) {
           return false;
         }
       }
@@ -82,14 +117,14 @@ export default function Classes() {
 
   const resetFilters = () => {
     setSelectedCategory('ALL');
-    setSelectedStyle('ALL STYLES');
+    setSelectedStyle('ALL');
     setSelectedLevel('ALL LEVELS');
     setSearchQuery('');
   };
 
   const hasActiveFilters =
     selectedCategory !== 'ALL' ||
-    (selectedStyle !== 'ALL STYLES' && selectedStyle !== 'ALL SUBTYPES') ||
+    selectedStyle !== 'ALL' ||
     selectedLevel !== 'ALL LEVELS' ||
     searchQuery.trim() !== '';
 
@@ -136,7 +171,7 @@ export default function Classes() {
                       key={cat.id}
                       onClick={() => {
                         setSelectedCategory(cat.id);
-                        setSelectedStyle('ALL STYLES');
+                        setSelectedStyle('ALL');
                       }}
                       className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
                         isActive
@@ -177,29 +212,33 @@ export default function Classes() {
             {/* Secondary Controls: Dance Styles & Level Filter */}
             <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-dark-800/40">
               
-              {/* Dance Styles / Subtype Pills */}
-              {(selectedCategory === 'ALL' || selectedCategory === 'Dance') ? (
-                <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                  <span className="text-dark-400 uppercase font-semibold tracking-widest text-[10px] mr-1">STYLE:</span>
-                  {danceStyles.map((style) => (
-                    <button
-                      key={style}
-                      onClick={() => setSelectedStyle(style)}
-                      className={`px-3 py-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
-                        selectedStyle === style
-                          ? 'bg-gold-500/20 text-gold-400 border border-gold-500/50'
-                          : 'text-dark-300 hover:text-warm-50 hover:bg-dark-900'
-                      }`}
-                    >
-                      {style}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-xs text-gold-400/90 font-medium">
-                  Showing {selectedCategory} Classes & Programs
-                </div>
-              )}
+              {/* Category-Specific Subtype Pills */}
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="text-dark-400 uppercase font-semibold tracking-widest text-[10px] mr-1">
+                  {selectedCategory === 'Dance'
+                    ? 'STYLE:'
+                    : selectedCategory === 'Music'
+                    ? 'MUSIC TYPE:'
+                    : selectedCategory === 'Fitness'
+                    ? 'FITNESS TYPE:'
+                    : selectedCategory === 'Events & Productions'
+                    ? 'PRODUCTION:'
+                    : 'SUBTYPE:'}
+                </span>
+                {categorySubtypes.map((style) => (
+                  <button
+                    key={style}
+                    onClick={() => setSelectedStyle(style)}
+                    className={`px-3 py-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                      selectedStyle === style
+                        ? 'bg-gold-500/20 text-gold-400 border border-gold-500/50'
+                        : 'text-dark-300 hover:text-warm-50 hover:bg-dark-900'
+                    }`}
+                  >
+                    {style}
+                  </button>
+                ))}
+              </div>
 
               {/* Level Filter & Reset */}
               <div className="flex items-center gap-3">

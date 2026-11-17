@@ -25,7 +25,12 @@ export const normalizeClassRecord = (record) => {
 
   const totalSeats = Number(record.totalSeats) >= 0 ? Number(record.totalSeats) : 20;
   const enrolledSeats = Number(record.enrolledSeats) >= 0 ? Number(record.enrolledSeats) : 0;
-  const availableSeats = Math.max(0, totalSeats - enrolledSeats);
+  const availableSeats = (record.availableSeats !== undefined && Number(record.availableSeats) >= 0)
+    ? Number(record.availableSeats)
+    : Math.max(0, totalSeats - enrolledSeats);
+
+  const fees = Number(record.fees ?? record.price) || 0;
+  const registrationStatus = record.registrationStatus || (availableSeats <= 0 ? 'FULL' : 'OPEN');
 
   return {
     ...record,
@@ -48,12 +53,14 @@ export const normalizeClassRecord = (record) => {
     totalSeats,
     enrolledSeats,
     availableSeats,
-    price: Number(record.price ?? record.fees) || 0,
+    fees,
+    price: fees,
     discount: Number(record.discount) || 0,
+    registrationStatus,
     image: getImage(record),
     level: record.level || 'All Levels',
     highlights: record.highlights || [],
-    instructor: record.instructor || record.instructorId?.name || 'Arpit Mahor',
+    instructor: 'Arpit Mahor',
   };
 };
 

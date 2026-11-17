@@ -20,6 +20,8 @@ const eventSchema = new mongoose.Schema(
     },
     registrationRequired: { type: Boolean, default: false },
     seats: { type: Number },
+    enrolledSeats: { type: Number, default: 0, min: 0 },
+    availableSeats: { type: Number, min: 0 },
     status: {
       type: String,
       enum: ['UPCOMING', 'PAST', 'CANCELLED'],

@@ -35,12 +35,16 @@ export default function ClassCard({ classData }) {
               {classData.level}
             </span>
 
-            {/* Discount badge */}
-            {classData.discount > 0 && (
-              <span className="absolute top-4 right-4 px-3 py-1 bg-gold-500 text-dark-900 text-xs font-bold tracking-wider">
-                {classData.discount}% OFF
-              </span>
-            )}
+            {/* Registration status badge */}
+            <span className={`absolute top-4 right-4 px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase rounded ${
+              classData.registrationStatus === 'FULL'
+                ? 'bg-rose-500/90 text-white'
+                : classData.registrationStatus === 'CLOSED'
+                ? 'bg-dark-700 text-dark-300'
+                : 'bg-emerald-500/90 text-dark-950'
+            }`}>
+              {classData.registrationStatus || 'OPEN'}
+            </span>
 
             {/* Category & Style Badge */}
             <span className="absolute bottom-4 left-4 text-xs tracking-widest uppercase text-gold-400 font-semibold bg-dark-950/80 px-2.5 py-1 rounded border border-dark-700">
@@ -66,6 +70,14 @@ export default function ClassCard({ classData }) {
               <div className="flex items-center gap-2 text-sm text-dark-200">
                 <MapPin className="w-4 h-4 text-dark-300" />
                 {classData.location}
+              </div>
+              <div className="flex items-center justify-between text-xs text-dark-300 pt-1">
+                <span>Instructor: <strong className="text-gold-400 font-semibold">{classData.instructor || 'Arpit Mahor'}</strong></span>
+                {classData.discount > 0 && (
+                  <span className="text-[10px] font-bold text-gold-400 bg-gold-500/10 px-2 py-0.5 rounded border border-gold-500/30">
+                    {classData.discount}% OFF
+                  </span>
+                )}
               </div>
             </div>
 

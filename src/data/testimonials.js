@@ -9,9 +9,9 @@ export const testimonials = [
   },
   {
     id: 2,
-    name: 'Rohan Verma',
+    name: 'Rohan Sen',
     role: 'Hip-Hop Student',
-    quote: 'The energy in every class is unmatched. The instructors don\'t just teach steps — they teach you how to feel the music and express yourself.',
+    quote: 'The energy in every class is unmatched. Arpit doesn\'t just teach steps — he teaches you how to feel the music and express yourself.',
     image: null,
     rating: 5,
   },

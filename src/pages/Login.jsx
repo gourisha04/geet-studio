@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -11,6 +11,7 @@ export default function Login() {
   const navigate = useNavigate();
   // Admin entry point is the same login page reached via /login?role=admin (see the /admin gate).
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const isAdminLogin = searchParams.get('role') === 'admin';
 
   const [email, setEmail] = useState('');
@@ -18,6 +19,14 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    const expiredMsg = location.state?.message || sessionStorage.getItem('geet_session_expired');
+    if (expiredMsg) {
+      setErrorMsg(expiredMsg);
+      sessionStorage.removeItem('geet_session_expired');
+    }
+  }, [location.state]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

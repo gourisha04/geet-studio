@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 // Cloudinary Upload Helper (Backend only)
 export const uploadToCloudinary = async (fileBufferOrBase64, folder = 'geet_studio') => {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
@@ -5,22 +7,27 @@ export const uploadToCloudinary = async (fileBufferOrBase64, folder = 'geet_stud
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
   if (!cloudName || !apiKey || !apiSecret) {
-    // Development fallback image/video payload
-    console.log(`🖼️ [CLOUDINARY DEV MOCK UPLOAD] Folder: ${folder}`);
-    const mockId = `mock_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-    return {
-      url: `https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80`,
-      publicId: mockId,
-      mocked: true,
-    };
+    throw new Error(
+      'Cloudinary credentials (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) are not configured on the server.'
+    );
   }
 
   try {
-    // Cloudinary REST API upload
+    const timestamp = Math.round(new Date().getTime() / 1000);
     const formData = new URLSearchParams();
     formData.append('file', fileBufferOrBase64);
-    formData.append('upload_preset', process.env.CLOUDINARY_UPLOAD_PRESET || 'unsigned');
+    formData.append('timestamp', String(timestamp));
     formData.append('folder', folder);
+    formData.append('api_key', apiKey);
+
+    // Compute cryptographic signature: sort params alphabetically, append secret, hash with SHA-1
+    const stringToSign = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
+    const signature = crypto.createHash('sha1').update(stringToSign).digest('hex');
+    formData.append('signature', signature);
+
+    if (process.env.CLOUDINARY_UPLOAD_PRESET) {
+      formData.append('upload_preset', process.env.CLOUDINARY_UPLOAD_PRESET);
+    }
 
     const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
       method: 'POST',
@@ -28,25 +35,20 @@ export const uploadToCloudinary = async (fileBufferOrBase64, folder = 'geet_stud
     });
 
     const data = await res.json();
-    if (data.error) {
-      console.error('❌ Cloudinary Upload Error:', data.error.message);
-      return {
-        url: `https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80`,
-        publicId: `fallback_${Date.now()}`,
-      };
+    if (data.error || !res.ok) {
+      const errMsg = data?.error?.message || `Cloudinary upload failed with HTTP status ${res.status}`;
+      console.error('❌ Cloudinary Upload Error:', errMsg);
+      throw new Error(errMsg);
     }
 
     return {
-      url: data.secure_url,
+      url: data.secure_url || data.url,
       publicId: data.public_id,
       format: data.format,
       bytes: data.bytes,
     };
   } catch (err) {
     console.error('❌ Cloudinary Upload Exception:', err.message);
-    return {
-      url: `https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80`,
-      publicId: `fallback_${Date.now()}`,
-    };
+    throw err;
   }
 };

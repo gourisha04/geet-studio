@@ -5,6 +5,7 @@ import CommunityAccessRequest from '../models/CommunityAccessRequest.js';
 import AnalyticsEvent from '../models/AnalyticsEvent.js';
 import { protect } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
+import { rateLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
@@ -240,17 +241,27 @@ router.put('/lead/me', protect, requireRole('lead', 'admin'), async (req, res, n
 // -------------------------------------------------------------
 
 // POST /api/community/leads/:leadId/access — Visitor requests member details
+const accessRequestLimiter = rateLimiter(25, 15 * 60 * 1000, { namespace: 'community-access-request' });
+
 const handleAccessDetails = async (req, res, next) => {
   try {
     const leadId = req.params.leadId || req.params.id;
     const name = req.body.name || req.body.visitorName || req.body.requesterName;
     const email = req.body.email || req.body.visitorEmail || req.body.requesterEmail;
 
-    if (!name || !email) {
-      return res.status(400).json({ success: false, message: 'Please enter a valid name and email address.' });
+    const trimmedName = String(name || '').trim();
+    const trimmedEmail = String(email || '').trim().toLowerCase();
+
+    if (!trimmedName || trimmedName.length < 2) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid visitor name (minimum 2 characters).' });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(leadId)) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+    }
+
+    if (!leadId || !mongoose.Types.ObjectId.isValid(leadId)) {
       return res.status(404).json({ success: false, message: 'This Community Member profile is not currently available.' });
     }
 
@@ -262,8 +273,8 @@ const handleAccessDetails = async (req, res, next) => {
     const savedAccessRequest = await CommunityAccessRequest.create({
       communityLead: member._id,
       communityMemberName: member.name,
-      visitorName: name,
-      visitorEmail: email,
+      visitorName: trimmedName,
+      visitorEmail: trimmedEmail,
     });
 
     res.json({
@@ -279,8 +290,8 @@ const handleAccessDetails = async (req, res, next) => {
   }
 };
 
-router.post('/leads/:leadId/access', handleAccessDetails);
-router.post('/:id/reveal-contact', handleAccessDetails);
+router.post('/leads/:leadId/access', accessRequestLimiter, handleAccessDetails);
+router.post('/:id/reveal-contact', accessRequestLimiter, handleAccessDetails);
 
 // GET /api/community — Public directory (Returns ONLY APPROVED Community Members)
 router.get('/', async (req, res, next) => {

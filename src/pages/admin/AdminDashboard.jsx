@@ -37,6 +37,8 @@ export default function AdminDashboard() {
 
   // Module data states
   const [requestsList, setRequestsList] = useState([]);
+  const [eventRegistrationsList, setEventRegistrationsList] = useState([]);
+  const [eventRegFilter, setEventRegFilter] = useState('ALL');
   const [accessRequestsList, setAccessRequestsList] = useState([]);
   const [classesList, setClassesList] = useState([]);
   const [communityMemberList, setCommunityMemberList] = useState([]);
@@ -72,6 +74,16 @@ export default function AdminDashboard() {
         }
       })
       .catch((e) => console.warn('Enrollments note:', e.message));
+  };
+
+  const fetchEventRegistrations = () => {
+    api.get('/api/events/admin/registrations')
+      .then((res) => {
+        if (res?.success && Array.isArray(res.data)) {
+          setEventRegistrationsList(res.data);
+        }
+      })
+      .catch((e) => console.warn('Event registrations note:', e.message));
   };
 
   const fetchAccessRequests = () => {
@@ -158,6 +170,7 @@ export default function AdminDashboard() {
     setLoading(true);
     fetchDashboardStats();
     fetchEnrollments();
+    fetchEventRegistrations();
     fetchAccessRequests();
     fetchClasses();
     fetchCommunityMembers();
@@ -203,6 +216,18 @@ export default function AdminDashboard() {
     api.patch(`/api/enrollments/${id}/status`, { status: newStatus })
       .then(() => fetchDashboardStats())
       .catch((e) => console.warn('Status update API error:', e.message));
+  };
+
+  const handleUpdateEventRegistrationStatus = (id, newStatus) => {
+    setEventRegistrationsList((prev) =>
+      prev.map((item) => (item._id === id || item.registrationId === id ? { ...item, status: newStatus } : item))
+    );
+    api.patch(`/api/events/admin/registrations/${id}/status`, { status: newStatus })
+      .then(() => {
+        fetchEvents();
+        fetchDashboardStats();
+      })
+      .catch((e) => console.warn('Event reg status error:', e.message));
   };
 
   const handleUpdateMemberStatus = (id, newStatus) => {
@@ -540,6 +565,7 @@ export default function AdminDashboard() {
             { id: 'classes', label: 'Classes', icon: GraduationCap },
             { id: 'workshops', label: 'Workshops', icon: GraduationCap },
             { id: 'enrollments', label: 'Enrollments', icon: ClipboardList },
+            { id: 'event-registrations', label: 'Event Registrations', icon: Calendar },
             { id: 'community', label: 'Community Members', icon: Users },
             { id: 'access-requests', label: 'Access Requests', icon: Key },
             { id: 'events', label: 'Events', icon: Calendar },
@@ -841,6 +867,107 @@ export default function AdminDashboard() {
                         </td>
                       </tr>
                     ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* 4B. EVENT REGISTRATIONS TAB */}
+        {activeTab === 'event-registrations' && (
+          <div className={`p-6 rounded-2xl border ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-md'}`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <h3 className="font-heading text-xl font-bold text-gold-500">Event Registrations</h3>
+                <p className="text-xs opacity-70">Manage public visitor bookings and attendee seats for live studio showcases.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {['ALL', 'NEW', 'CONTACTED', 'CONFIRMED', 'CANCELLED'].map((st) => (
+                  <button
+                    key={st}
+                    onClick={() => setEventRegFilter(st)}
+                    className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      eventRegFilter === st
+                        ? 'bg-gold-500 text-dark-950 font-bold'
+                        : isDark
+                        ? 'bg-dark-800 text-dark-200 hover:text-warm-50'
+                        : 'bg-warm-100 text-dark-800 hover:bg-warm-200'
+                    }`}
+                  >
+                    {st}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-dark-700 text-gold-500 uppercase tracking-wider">
+                    <th className="py-3 px-4">Reg ID</th>
+                    <th className="py-3 px-4">Attendee Name</th>
+                    <th className="py-3 px-4">Event Showcase</th>
+                    <th className="py-3 px-4">Seats</th>
+                    <th className="py-3 px-4">Phone</th>
+                    <th className="py-3 px-4">Email</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">Update Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {eventRegistrationsList
+                    .filter((r) => eventRegFilter === 'ALL' || r.status === eventRegFilter)
+                    .length === 0 ? (
+                    <tr>
+                      <td colSpan="8" className="py-8 text-center opacity-60">
+                        No event registrations found {eventRegFilter !== 'ALL' ? `for status "${eventRegFilter}"` : ''}.
+                      </td>
+                    </tr>
+                  ) : (
+                    eventRegistrationsList
+                      .filter((r) => eventRegFilter === 'ALL' || r.status === eventRegFilter)
+                      .map((reg) => (
+                        <tr key={reg._id || reg.registrationId} className="border-b border-dark-700/30">
+                          <td className="py-3.5 px-4 font-mono text-gold-400">{reg.registrationId || reg._id}</td>
+                          <td className="py-3.5 px-4 font-bold">{reg.attendeeName}</td>
+                          <td className="py-3.5 px-4 font-medium text-warm-100">
+                            {reg.eventTitle || reg.eventId?.title || 'Live Studio Event'}
+                          </td>
+                          <td className="py-3.5 px-4 font-bold text-gold-400">{reg.seats || 1}</td>
+                          <td className="py-3.5 px-4">{reg.phone}</td>
+                          <td className="py-3.5 px-4">{reg.email}</td>
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${
+                                reg.status === 'CONFIRMED'
+                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                  : reg.status === 'CANCELLED'
+                                  ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
+                                  : reg.status === 'CONTACTED'
+                                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
+                                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                              }`}
+                            >
+                              {reg.status || 'NEW'}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <select
+                              value={reg.status || 'NEW'}
+                              onChange={(e) => handleUpdateEventRegistrationStatus(reg._id, e.target.value)}
+                              className={`text-xs px-2 py-1 rounded border cursor-pointer ${
+                                isDark ? 'bg-dark-800 border-dark-600 text-warm-50' : 'bg-warm-100 border-warm-300'
+                              }`}
+                            >
+                              <option value="NEW">NEW</option>
+                              <option value="CONTACTED">CONTACTED</option>
+                              <option value="CONFIRMED">CONFIRMED</option>
+                              <option value="CANCELLED">CANCELLED</option>
+                            </select>
+                          </td>
+                        </tr>
+                      ))
                   )}
                 </tbody>
               </table>

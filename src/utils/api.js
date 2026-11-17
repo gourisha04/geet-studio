@@ -7,10 +7,14 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
  */
 export async function apiFetch(path, options = {}) {
   const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
+  const token = typeof window !== 'undefined'
+    ? (sessionStorage.getItem('geet_token') || localStorage.getItem('geet_token'))
+    : null;
   const config = {
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
     ...options,
@@ -38,7 +42,23 @@ export async function apiFetch(path, options = {}) {
     const errorMsg = data?.message || (isJson ? `API Error: ${response.status}` : `Server returned invalid response (${response.status})`);
     const error = new Error(errorMsg);
     error.status = response.status;
+    error.code = data?.code;
     error.data = data;
+
+    // Backend-enforced inactivity session timeout interception
+    if (response.status === 401 && (data?.code === 'SESSION_INACTIVE' || data?.message?.toLowerCase().includes('inactivity'))) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('geet_user');
+        localStorage.removeItem('geet_token');
+        localStorage.removeItem('geet_admin_last_activity');
+        sessionStorage.removeItem('geet_token');
+        sessionStorage.setItem('geet_session_expired', 'Your session expired due to inactivity. Please log in again.');
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login?role=admin';
+        }
+      }
+    }
+
     throw error;
   }
 

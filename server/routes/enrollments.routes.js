@@ -96,10 +96,10 @@ const handleCreateEnrollmentRequest = async (req, res, next) => {
   }
 };
 
-// POST /api/enrollments — Primary Enrollment Request endpoint
+// POST /api/enrollments — Primary Enrollment Request endpoint (PUBLIC: No authentication required)
 router.post('/', handleCreateEnrollmentRequest);
 
-// POST /api/enrollments/register — Backward-compatible alias for modal forms
+// POST /api/enrollments/register — Backward-compatible alias for modal forms (PUBLIC: No authentication required)
 router.post('/register', handleCreateEnrollmentRequest);
 
 // GET /api/enrollments — Admin list enrollments

@@ -228,14 +228,13 @@ export default function ReachUsSection() {
 
                 <div>
                   <label className="block text-xs uppercase tracking-wider font-semibold opacity-80 mb-1">
-                    MESSAGE *
+                    MESSAGE (OPTIONAL)
                   </label>
                   <textarea
-                    required
                     rows={4}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="Tell us a little about what you're looking for..."
+                    placeholder="Tell us a little about what you're looking for (optional)..."
                     className={`w-full px-4 py-2.5 text-sm rounded border focus:outline-none focus:border-gold-500 ${
                       isDark ? 'bg-dark-900 border-dark-700 text-warm-50' : 'bg-warm-50 border-warm-300 text-dark-950'
                     }`}

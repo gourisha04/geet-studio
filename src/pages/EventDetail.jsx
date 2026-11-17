@@ -28,7 +28,8 @@ export default function EventDetail() {
           date: item.date ? new Date(item.date).toLocaleDateString('en-IN') : 'TBA',
             price: item.price ?? null,
             totalSeats: item.seats ?? null,
-            availableSeats: item.seats ?? null,
+            enrolledSeats: item.enrolledSeats ?? 0,
+            availableSeats: item.availableSeats !== undefined ? item.availableSeats : (item.seats ?? null),
           longDescription: item.description || '',
           highlights: [],
         });

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 export const connectDB = async () => {
-  const uri = process.env.MONGODB_URI;
+  const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
   if (!uri || uri.includes('username:password') || uri.includes('<db_username>')) {
     console.warn('⚠️ MONGODB_URI is not defined or is placeholder. Server operating with resilient in-memory mode.');
@@ -11,7 +11,7 @@ export const connectDB = async () => {
 
   try {
     const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 2000,
+      serverSelectionTimeoutMS: 10000,
       bufferCommands: false,
     });
     console.log(`🍃 MongoDB Atlas Connected: ${conn.connection.host}`);

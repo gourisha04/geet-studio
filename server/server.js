@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 import { connectDB } from './config/db.js';
 import { validateEnv } from './config/env.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -164,6 +165,22 @@ app.get('/api/updates/latest', (req, res) => {
     status: 'UPDATED TODAY',
     timezone: 'Asia/Kolkata',
   });
+});
+
+// Database Readiness Guard
+app.use('/api', (req, res, next) => {
+  if (req.path === '/health' || req.path === '/updates/latest') {
+    return next();
+  }
+
+  if (isProduction && mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      success: false,
+      message: 'Geet Studio database service is connecting or temporarily unavailable. Please retry in a few moments.',
+    });
+  }
+
+  next();
 });
 
 // 3. API Routers

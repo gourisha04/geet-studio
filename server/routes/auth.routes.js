@@ -2,7 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
-import { protect } from '../middleware/auth.js';
+import { protect, touchAdminActivity, clearAdminActivity } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -17,10 +17,11 @@ const signToken = (id, email, name, role) => {
 
 // Helper to send HTTP-only Cookie
 const sendCookie = (res, token) => {
+  const isProd = process.env.NODE_ENV === 'production';
   res.cookie('jwt', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };
@@ -127,15 +128,22 @@ router.post('/login', async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials. User does not exist.' });
     }
 
-    if (user.password) {
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(401).json({ success: false, message: 'Invalid credentials.' });
-      }
+    if (!user.password) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials.' });
     }
 
     const token = signToken(user._id || user.id, user.email, user.name, user.role);
     sendCookie(res, token);
+
+    // Initialize administrator activity timestamp upon successful login
+    if (user.role === 'admin') {
+      touchAdminActivity(user._id || user.id);
+    }
 
     res.json({
       success: true,
@@ -156,13 +164,48 @@ router.post('/login', async (req, res, next) => {
 
 // POST /api/auth/logout
 router.post('/logout', (req, res) => {
-  res.clearCookie('jwt');
+  let token = req.cookies?.jwt;
+  if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  if (token) {
+    try {
+      const secret = process.env.JWT_SECRET || 'geet_studio_default_jwt_secret_2026';
+      const decoded = jwt.verify(token, secret);
+      if (decoded?.id) {
+        clearAdminActivity(decoded.id);
+      }
+    } catch {
+      // Ignore token decode error on logout
+    }
+  }
+
+  const isProd = process.env.NODE_ENV === 'production';
+  res.clearCookie('jwt', {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+  });
   res.json({ success: true, message: 'Logged out successfully' });
+});
+
+// POST /api/auth/heartbeat - Keep active administrator session alive during user interactions
+router.post('/heartbeat', protect, (req, res) => {
+  if (req.user?.role === 'admin') {
+    touchAdminActivity(req.user._id || req.user.id);
+    return res.json({ success: true, message: 'Admin activity refreshed.' });
+  }
+  res.json({ success: true, message: 'Heartbeat acknowledged.' });
 });
 
 // GET /api/auth/me
 router.get('/me', (req, res, next) => {
-  if (!req.cookies?.jwt && !req.headers.authorization) {
+  let token = req.cookies?.jwt;
+  if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token) {
     return res.json({ success: true, user: null });
   }
 

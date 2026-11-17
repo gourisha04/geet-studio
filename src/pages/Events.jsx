@@ -23,7 +23,8 @@ export default function Events() {
             date: event.date ? new Date(event.date).toLocaleDateString('en-IN') : 'TBA',
             price: event.price ?? null,
             totalSeats: event.seats ?? null,
-            availableSeats: event.seats ?? null,
+            enrolledSeats: event.enrolledSeats ?? 0,
+            availableSeats: event.availableSeats !== undefined ? event.availableSeats : (event.seats ?? null),
           })));
         }
       })
@@ -54,22 +55,42 @@ export default function Events() {
       {/* Upcoming Events */}
       <section className="py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <p className="text-xs uppercase tracking-[0.2em] font-bold text-gold-500 mb-1">What’s happening at Geet</p>
-            <h3 className="font-heading text-2xl font-bold text-warm-50">Upcoming Events</h3>
+          <div className="mb-10 pb-4 border-b border-dark-800 flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.25em] font-bold text-gold-500 mb-1">LIVE & UPCOMING PROGRAMMING</p>
+              <h3 className="font-heading text-3xl font-bold text-warm-50">Upcoming Events & Showcases</h3>
+            </div>
+            <span className="px-3.5 py-1 rounded-full bg-gold-500/10 border border-gold-500/30 text-gold-400 text-xs font-bold uppercase tracking-wider hidden sm:inline-block">
+              {upcoming.length} Upcoming
+            </span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {upcoming.map((event) => (
-              <EventCard key={event.id} event={event} />
-            ))}
-          </div>
+          {upcoming.length === 0 ? (
+            <div className="p-12 text-center border border-dashed border-dark-800 rounded-3xl opacity-75">
+              <p className="text-base font-bold text-warm-50 mb-1">No upcoming live events scheduled right now</p>
+              <p className="text-xs text-dark-300">Check back soon or explore our active classes and workshops!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {upcoming.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
       {/* Past Events */}
-      <section className="pb-16 px-4 md:px-8">
+      <section className="pb-20 px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
-          <h3 className="font-heading text-xl font-bold text-warm-50 mb-6">Past Events</h3>
+          <div className="mb-10 pb-4 border-b border-dark-800 flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.25em] font-bold text-dark-400 mb-1">STUDIO ARCHIVES</p>
+              <h3 className="font-heading text-2xl md:text-3xl font-bold text-warm-200">Past Events & Performances</h3>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-dark-900 border border-dark-700 text-dark-300 text-xs font-semibold uppercase tracking-wider hidden sm:inline-block">
+              {past.length} Past Showcases
+            </span>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {past.map((event) => (
               <EventCard key={event.id} event={event} />

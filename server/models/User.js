@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema(
       index: true,
     },
     isVerified: { type: Boolean, default: true },
+    lastAdminActivity: { type: Date, default: null },
   },
   { timestamps: true }
 );

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Search, Filter, ShieldCheck, MapPin, ArrowRight, UserPlus, Sparkles, ChevronDown } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { api } from '../utils/api';
@@ -12,15 +12,38 @@ const categoriesList = [
   'Decor', 'Other'
 ];
 
-
+const formatSingularTag = (cat) => {
+  if (!cat) return 'MEMBER';
+  let str = String(cat).trim();
+  if (str.toLowerCase() === 'dancers') return 'DANCER';
+  if (str.toLowerCase() === 'singers') return 'SINGER';
+  if (str.toLowerCase() === 'musicians') return 'MUSICIAN';
+  if (str.toLowerCase() === 'anchors') return 'ANCHOR';
+  if (str.toLowerCase() === 'artists') return 'ARTIST';
+  if (str.toLowerCase() === 'event planners') return 'EVENT PLANNER';
+  if (str.toLowerCase() === 'event managers') return 'EVENT MANAGER';
+  if (str.toLowerCase().endsWith('s') && !str.toLowerCase().endsWith('ss') && !str.toLowerCase().endsWith('us')) {
+    str = str.slice(0, -1);
+  }
+  return str.toUpperCase();
+};
 
 export default function CommunityPage() {
   const { isDark } = useTheme();
-  const [selectedCat, setSelectedCat] = useState('All');
+  const [searchParams] = useSearchParams();
+  const initialCategory = searchParams.get('category') || 'All';
+  const [selectedCat, setSelectedCat] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCity, setSelectedCity] = useState('All');
   const [selectedArea, setSelectedArea] = useState('All');
   const [communityRecords, setCommunityRecords] = useState([]);
+
+  useEffect(() => {
+    const paramCat = searchParams.get('category');
+    if (paramCat) {
+      setSelectedCat(paramCat);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     let cancelled = false;
@@ -224,8 +247,8 @@ export default function CommunityPage() {
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                    <span className="absolute top-4 left-4 px-3 py-1 text-[11px] font-bold bg-gold-500 text-dark-950 rounded uppercase tracking-wider">
-                      {lead.category}
+                    <span className="absolute top-4 left-4 px-3 py-1 text-[11px] font-bold bg-gold-500 text-dark-950 rounded uppercase tracking-wider shadow-md">
+                      {formatSingularTag(lead.category)}
                     </span>
                     <div className="absolute bottom-4 left-4 right-4 text-white">
                       <div className="flex items-center justify-between">

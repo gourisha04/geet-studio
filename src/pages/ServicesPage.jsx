@@ -78,9 +78,11 @@ export default function ServicesPage() {
     api.get('/api/services')
       .then((res) => {
         if (!cancelled && res?.success && Array.isArray(res.data)) {
-          setServices(res.data.map((service) => ({
+          const orderMap = { dance: 1, music: 2, fitness: 3, 'events-productions': 4, events: 4 };
+          const mapped = res.data.map((service) => ({
             ...service,
             id: service._id,
+            slug: service.slug || service._id,
             icon: service.slug?.startsWith('music') || service.title?.toLowerCase().includes('music')
               ? Music
               : service.slug?.startsWith('fitness') || service.title?.toLowerCase().includes('fitness')
@@ -91,14 +93,24 @@ export default function ServicesPage() {
             category: service.category || 'Studio Service',
             image: service.media?.url || 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800&q=80',
             offerings: (service.offerings || []).map((offering) => ({ ...offering, desc: offering.description || offering.desc || '' })),
-          })));
+          }));
+
+          mapped.sort((a, b) => {
+            const keyA = (a.slug || a.title || '').toLowerCase();
+            const keyB = (b.slug || b.title || '').toLowerCase();
+            const scoreA = keyA.includes('dance') ? 1 : keyA.includes('music') ? 2 : keyA.includes('fitness') ? 3 : 4;
+            const scoreB = keyB.includes('dance') ? 1 : keyB.includes('music') ? 2 : keyB.includes('fitness') ? 3 : 4;
+            return scoreA - scoreB;
+          });
+
+          setServices(mapped);
         }
       })
       .catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
-  const displayedServices = services;
+  const displayedServices = services.length > 0 ? services : servicesData;
 
   const handleQuoteSubmit = (e) => {
     e.preventDefault();
@@ -137,27 +149,29 @@ export default function ServicesPage() {
                   isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-warm-200 shadow-lg'
                 }`}
               >
-                <div className={`${isEven ? 'lg:order-1' : 'lg:order-2'} relative h-72 lg:h-96 rounded-xl overflow-hidden`}>
+                <Link to={`/services/${service.slug || service.id}`} className={`${isEven ? 'lg:order-1' : 'lg:order-2'} relative h-72 lg:h-96 rounded-xl overflow-hidden group block`}>
                   <img
                     src={service.image}
                     alt={service.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   <div className="absolute bottom-4 left-4 flex items-center gap-3 text-white">
                     <div className="w-10 h-10 rounded-lg bg-gold-500/20 backdrop-blur-md flex items-center justify-center text-gold-500">
                       <Icon className="w-6 h-6" />
                     </div>
-                    <h3 className="font-heading text-2xl font-bold">{service.title}</h3>
+                    <h3 className="font-heading text-2xl font-bold group-hover:text-gold-400 transition-colors">{service.title}</h3>
                   </div>
-                </div>
+                </Link>
 
                 <div className={`${isEven ? 'lg:order-2' : 'lg:order-1'} space-y-6`}>
                   <div>
                     <span className="px-3 py-1 text-xs font-bold bg-gold-500/10 border border-gold-500/30 text-gold-500 rounded uppercase tracking-wider inline-block mb-3">
                       {service.category}
                     </span>
-                    <h2 className="font-heading text-3xl font-bold mb-3">{service.title}</h2>
+                    <Link to={`/services/${service.slug || service.id}`}>
+                      <h2 className="font-heading text-3xl font-bold mb-3 hover:text-gold-500 transition-colors">{service.title}</h2>
+                    </Link>
                     <p className="text-base opacity-85 leading-relaxed">{service.description}</p>
                   </div>
 

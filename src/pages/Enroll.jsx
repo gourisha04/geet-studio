@@ -85,18 +85,29 @@ export default function Enroll() {
     setErrorMsg('');
 
     try {
-      const data = await api.post('/api/enrollments', {
-        classId: item._id || item.id || id,
-        className: item.name || item.title,
-        studentName: form.name,
-        email: form.email,
-        phone: form.phone,
-        age: form.age,
-        message: form.message,
-      });
+      let data;
+      if (itemType === 'event') {
+        data = await api.post('/api/events/register', {
+          eventId: item._id || item.id || id,
+          attendeeName: form.name,
+          email: form.email,
+          phone: form.phone,
+          message: form.message,
+          age: form.age,
+        });
+      } else {
+        data = await api.post('/api/enrollments', {
+          classId: item._id || item.id || id,
+          studentName: form.name,
+          email: form.email,
+          phone: form.phone,
+          age: form.age,
+          message: form.message,
+        });
+      }
 
       if (!data?.success) {
-        throw new Error(data?.message || 'Failed to submit enrollment request.');
+        throw new Error(data?.message || 'Failed to submit registration request.');
       }
 
       setSubmitted(true);
