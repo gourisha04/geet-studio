@@ -48,7 +48,73 @@ connectDB().then((isConnected) => {
   }
 });
 
-// Security & Core Middlewares (Phase 17)
+// -----------------------------------------------------------------------------
+// CORS Configuration (Top of middleware stack for preflight efficiency)
+// -----------------------------------------------------------------------------
+// Configured through defaults and environment variables:
+//   CLIENT_URL            -> primary frontend origin
+//   CORS_ALLOWED_ORIGINS  -> optional extra origins, comma-separated
+const normalizeOrigin = (value) =>
+  String(value || '')
+    .trim()
+    .replace(/^["']|["']$/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/\/+$/, '');
+
+const defaultOrigins = [
+  'https://www.geetstudio.in',
+  'https://geetstudio.in',
+  'https://geet-studio.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+export const allowedOrigins = Array.from(
+  new Set(
+    [
+      process.env.CLIENT_URL,
+      process.env.CORS_ALLOWED_ORIGINS,
+      ...defaultOrigins,
+    ]
+      .filter(Boolean)
+      .flatMap((value) => String(value).split(','))
+      .map(normalizeOrigin)
+      .filter(Boolean)
+  )
+);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // No Origin header (same-origin navigation, curl, server-to-server) is not a CORS request.
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    const requestedOrigin = normalizeOrigin(origin);
+
+    if (allowedOrigins.includes(requestedOrigin)) {
+      callback(null, requestedOrigin);
+      return;
+    }
+
+    // Denied: no CORS headers are emitted, so the browser blocks the response.
+    callback(null, false);
+  },
+  credentials: true,
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Set-Cookie'],
+  maxAge: 86400, // 24 hours preflight cache
+  optionsSuccessStatus: 204,
+};
+
+// 1. Apply CORS and preflight handling at the very top of the middleware pipeline
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// 2. Security Headers & Parsers
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -59,49 +125,6 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser(process.env.COOKIE_SECRET || 'geet_cookie_secret_2026'));
-
-// CORS allow-list. Origins must be listed explicitly — a fallback that accepts anything would let
-// any website issue credentialed requests with a signed-in visitor's session cookie.
-// Configured through the environment (see server/.env.example):
-//   CLIENT_URL            -> primary frontend origin
-//   CORS_ALLOWED_ORIGINS  -> optional extra origins, comma-separated (previews, staging, domains)
-const normalizeOrigin = (value) => String(value).trim().replace(/\/+$/, '');
-
-const allowedOrigins = [
-  process.env.CLIENT_URL,
-  process.env.CORS_ALLOWED_ORIGINS,
-  // Defaults so local development and the production Vercel frontend work out of the box.
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'https://geet-studio.vercel.app',
-]
-  .filter(Boolean)
-  .flatMap((value) => String(value).split(','))
-  .map(normalizeOrigin)
-  .filter(Boolean);
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // No Origin header (same-origin navigation, curl, server-to-server) is not a CORS request.
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
-
-      const requestedOrigin = normalizeOrigin(origin);
-
-      if (allowedOrigins.includes(requestedOrigin)) {
-        callback(null, requestedOrigin);
-        return;
-      }
-
-      // Denied: no CORS headers are emitted, so the browser blocks the response.
-      callback(null, false);
-    },
-    credentials: true,
-  })
-);
 
 const authLoginLimit = isProduction ? 10 : 30;
 const authLoginWindow = 15 * 60 * 1000;
@@ -124,10 +147,16 @@ const isLoginRoute = (req) => requestPath(req) === '/api/auth/login';
 const isTelemetryRoute = (req) => requestPath(req) === '/api/analytics/log';
 
 // Login has its own brute-force limit; session checks and public API traffic do not consume it.
-app.use('/api/auth/login', rateLimiter(authLoginLimit, authLoginWindow, { namespace: 'auth-login' }));
+app.use('/api/auth/login', rateLimiter(authLoginLimit, authLoginWindow, {
+  namespace: 'auth-login',
+  skip: (req) => req.method === 'OPTIONS',
+}));
 
 // Public telemetry beacon: separate bucket, so page views never spend the write budget.
-app.use('/api/analytics/log', rateLimiter(telemetryLimit, telemetryWindow, { namespace: 'analytics-telemetry' }));
+app.use('/api/analytics/log', rateLimiter(telemetryLimit, telemetryWindow, {
+  namespace: 'analytics-telemetry',
+  skip: (req) => req.method === 'OPTIONS',
+}));
 
 // All remaining API traffic. GET/HEAD/OPTIONS reads are exempt, so only write / mutation
 // routes consume the strict budget below. Login and telemetry are already counted above.
@@ -169,7 +198,7 @@ app.get('/api/updates/latest', (req, res) => {
 
 // Database Readiness Guard
 app.use('/api', (req, res, next) => {
-  if (req.path === '/health' || req.path === '/updates/latest') {
+  if (req.method === 'OPTIONS' || req.path === '/health' || req.path === '/updates/latest') {
     return next();
   }
 
